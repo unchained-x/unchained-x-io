@@ -1,11 +1,16 @@
 import { useCallback, useState } from "react";
+import { isMuted, playTone, toggleMute } from "~/lib/audio";
 
 export default function SoundToggle() {
-  const [enabled, setEnabled] = useState(false);
+  const [enabled, setEnabled] = useState(!isMuted());
 
   const toggle = useCallback(() => {
-    setEnabled((prev) => !prev);
-    // Audio engine integration will come in Phase 2
+    const nowMuted = toggleMute();
+    setEnabled(!nowMuted);
+    // Play a subtle click sound when enabling
+    if (!nowMuted) {
+      playTone(880, 0.08, 0.15);
+    }
   }, []);
 
   return (
@@ -19,7 +24,7 @@ export default function SoundToggle() {
       <div className="flex items-end gap-[2px] h-3">
         {[1, 2, 3, 4].map((i) => (
           <div
-            key={i}
+            key={`bar-${i}`}
             className={`w-[2px] bg-current transition-all duration-300 ${
               enabled ? "animate-sound-bar" : "h-[2px]"
             }`}

@@ -16,6 +16,7 @@ import Footer from "~/components/layout/Footer";
 import Header from "~/components/layout/Header";
 import MenuOverlay from "~/components/layout/MenuOverlay.client";
 import Cursor from "~/components/ui/Cursor.client";
+import LoadingScreen from "~/components/ui/LoadingScreen.client";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -50,12 +51,17 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
   const toggleMenu = useCallback(() => setIsMenuOpen((prev) => !prev), []);
   const closeMenu = useCallback(() => setIsMenuOpen(false), []);
+  const handleLoadComplete = useCallback(() => setIsLoaded(true), []);
 
   return (
     <>
       <ClientOnly fallback={null}>{() => <Cursor />}</ClientOnly>
+      <ClientOnly fallback={null}>
+        {() => !isLoaded && <LoadingScreen onComplete={handleLoadComplete} />}
+      </ClientOnly>
       <Header isMenuOpen={isMenuOpen} onMenuToggle={toggleMenu} />
       <ClientOnly fallback={null}>
         {() => <MenuOverlay isOpen={isMenuOpen} onClose={closeMenu} />}
