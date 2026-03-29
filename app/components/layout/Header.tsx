@@ -6,15 +6,17 @@ import SoundToggle from "./SoundToggle.client";
 interface HeaderProps {
   isMenuOpen: boolean;
   onMenuToggle: () => void;
+  onMenuClose: () => void;
 }
 
-export default function Header({ isMenuOpen, onMenuToggle }: HeaderProps) {
+export default function Header({ isMenuOpen, onMenuToggle, onMenuClose }: HeaderProps) {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 md:px-10 md:py-6">
       {/* Logo */}
       <Link
         to="/"
-        className="text-lg md:text-xl font-bold tracking-tight text-text hover:text-neon-cyan transition-colors duration-300"
+        onClick={onMenuClose}
+        className="text-lg md:text-xl font-bold tracking-tight text-text/60 neon-glow hover:text-neon-cyan hover:neon-glow-strong transition-all duration-500"
       >
         UnchainedX
       </Link>

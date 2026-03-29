@@ -59,3 +59,25 @@ html.lenis body {
 .animate-sound-bar {
   animation: sound-bar 0.6s ease-in-out infinite;
 }
+
+/* Neon text glow — apply to 2D text across the site */
+.neon-glow {
+  text-shadow:
+    0 0 5px rgba(0, 240, 255, 0.5),
+    0 0 15px rgba(0, 240, 255, 0.2),
+    0 0 30px rgba(0, 240, 255, 0.1);
+}
+
+.neon-glow-purple {
+  text-shadow:
+    0 0 5px rgba(191, 0, 255, 0.5),
+    0 0 15px rgba(191, 0, 255, 0.2),
+    0 0 30px rgba(191, 0, 255, 0.1);
+}
+
+.neon-glow-strong {
+  text-shadow:
+    0 0 8px rgba(0, 240, 255, 0.6),
+    0 0 25px rgba(0, 240, 255, 0.35),
+    0 0 50px rgba(0, 240, 255, 0.15);
+}

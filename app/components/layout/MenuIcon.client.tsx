@@ -87,7 +87,7 @@ export default function MenuIcon({ isOpen, onClick }: MenuIconProps) {
     <button
       type="button"
       onClick={onClick}
-      className="relative w-8 h-8 flex items-center justify-center hover:scale-110 transition-transform duration-200"
+      className={`relative w-8 h-8 flex items-center justify-center hover:scale-110 transition-all duration-500 ${isOpen ? "rotate-180" : "rotate-0"}`}
       aria-label={isOpen ? "Close menu" : "Open menu"}
     >
       <canvas ref={canvasRef} className="w-8 h-8" />

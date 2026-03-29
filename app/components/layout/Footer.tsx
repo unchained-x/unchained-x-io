@@ -24,14 +24,14 @@ export default function Footer() {
     <footer className="relative px-6 py-12 md:px-10 md:py-16 border-t border-border">
       <div className="max-w-4xl mx-auto space-y-8">
         {/* GET IN TOUCH */}
-        <h2 className="text-2xl md:text-4xl font-bold uppercase tracking-wider text-neon-cyan">
+        <h2 className="text-2xl md:text-4xl font-bold uppercase tracking-wider text-neon-cyan neon-glow-strong">
           Get In Touch
         </h2>
 
         {/* Email */}
         <a
           href="mailto:hello@unchainedx.io"
-          className="block text-lg md:text-xl text-text-muted hover:text-neon-purple transition-colors duration-300"
+          className="block text-lg md:text-xl text-text-muted neon-glow hover:text-neon-purple hover:neon-glow-purple transition-all duration-500"
         >
           hello@unchainedx.io
         </a>

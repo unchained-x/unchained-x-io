@@ -62,7 +62,7 @@ export default function App() {
       <ClientOnly fallback={null}>
         {() => !isLoaded && <LoadingScreen onComplete={handleLoadComplete} />}
       </ClientOnly>
-      <Header isMenuOpen={isMenuOpen} onMenuToggle={toggleMenu} />
+      <Header isMenuOpen={isMenuOpen} onMenuToggle={toggleMenu} onMenuClose={closeMenu} />
       <ClientOnly fallback={null}>
         {() => <MenuOverlay isOpen={isMenuOpen} onClose={closeMenu} />}
       </ClientOnly>

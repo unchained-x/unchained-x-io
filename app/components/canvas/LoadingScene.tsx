@@ -23,7 +23,6 @@ function getChainPositions(): { pos: [number, number, number]; rot: [number, num
 
 export default function LoadingScene({ progress, onComplete }: LoadingSceneProps) {
   const groupRef = useRef<Group>(null);
-  const completionTime = useRef(0);
   const hasStartedExplosion = useRef(false);
   const [showChains, setShowChains] = useState(true);
   const [showParticles, setShowParticles] = useState(false);

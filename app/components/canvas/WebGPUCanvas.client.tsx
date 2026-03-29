@@ -11,17 +11,23 @@ extend(THREE as unknown as Record<string, unknown>);
 
 type Props = PropsWithChildren<{
   className?: string;
-  dpr?: number;
+  dpr?: number | [number, number];
+  /** Set to "never" when using native PostProcessing (it manages its own render) */
+  frameloop?: "always" | "demand" | "never";
 }>;
 
-const WebGPUCanvas: FC<Props> = ({ children, className, dpr }) => {
+const WebGPUCanvas: FC<Props> = ({ children, className, dpr, frameloop = "always" }) => {
   return (
     <Canvas
       className={className}
       dpr={dpr ?? [1, 2]}
+      frameloop={frameloop}
       camera={{ position: [0, 0, 5], fov: 50 }}
       gl={async (props) => {
-        const renderer = new THREE.WebGPURenderer(props as WebGPURendererParameters);
+        const renderer = new THREE.WebGPURenderer({
+          ...(props as WebGPURendererParameters),
+          antialias: true,
+        });
         await renderer.init();
         return renderer;
       }}
