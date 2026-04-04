@@ -1,7 +1,6 @@
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import type { Group } from "three";
-import { createFresnelGlowMaterial } from "~/shaders/fresnelGlow";
 
 interface DNAHelixProps {
   position: [number, number, number];
@@ -17,21 +16,18 @@ export default function DNAHelix({
   height = 3,
 }: DNAHelixProps) {
   const groupRef = useRef<Group>(null);
-  const fresnel = useMemo(() => createFresnelGlowMaterial(), []);
 
   const nodes = useMemo(() => {
     const result: { pos: [number, number, number]; strand: number }[] = [];
     for (let i = 0; i < nodeCount; i++) {
       const t = i / nodeCount;
-      const angle = t * Math.PI * 4; // 2 full rotations
+      const angle = t * Math.PI * 4;
       const y = (t - 0.5) * height;
 
-      // Strand A
       result.push({
         pos: [Math.cos(angle) * radius, y, Math.sin(angle) * radius],
         strand: 0,
       });
-      // Strand B (offset by PI)
       result.push({
         pos: [Math.cos(angle + Math.PI) * radius, y, Math.sin(angle + Math.PI) * radius],
         strand: 1,
@@ -42,9 +38,7 @@ export default function DNAHelix({
 
   useFrame(({ clock }) => {
     if (!groupRef.current) return;
-    const t = clock.getElapsedTime();
-    fresnel.uniforms.uTime.value = t;
-    groupRef.current.rotation.y = t * 0.3;
+    groupRef.current.rotation.y = clock.getElapsedTime() * 0.3;
   });
 
   return (

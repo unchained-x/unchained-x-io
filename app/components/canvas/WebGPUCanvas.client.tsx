@@ -12,7 +12,6 @@ extend(THREE as unknown as Record<string, unknown>);
 type Props = PropsWithChildren<{
   className?: string;
   dpr?: number | [number, number];
-  /** Set to "never" when using native PostProcessing (it manages its own render) */
   frameloop?: "always" | "demand" | "never";
 }>;
 
@@ -24,12 +23,21 @@ const WebGPUCanvas: FC<Props> = ({ children, className, dpr, frameloop = "always
       frameloop={frameloop}
       camera={{ position: [0, 0, 5], fov: 50 }}
       gl={async (props) => {
-        const renderer = new THREE.WebGPURenderer({
-          ...(props as WebGPURendererParameters),
-          antialias: true,
-        });
-        await renderer.init();
-        return renderer;
+        try {
+          const renderer = new THREE.WebGPURenderer({
+            ...(props as WebGPURendererParameters),
+            antialias: true,
+          });
+          await renderer.init();
+          return renderer;
+        } catch (e) {
+          console.warn("[WebGPU] Failed to init, falling back to WebGL:", e);
+          return new THREE.WebGLRenderer({
+            canvas: props.canvas as HTMLCanvasElement,
+            antialias: true,
+            alpha: true,
+          });
+        }
       }}
     >
       {children}
