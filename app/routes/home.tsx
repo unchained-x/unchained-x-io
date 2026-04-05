@@ -14,7 +14,7 @@ export function meta(_args: Route.MetaArgs) {
   ];
 }
 
-const SECTION_COUNT = 4; // Hero, Teaser, Identity+Value, Footer
+const SECTION_COUNT = 5;
 
 export default function Home() {
   const scrollProgress = useScrollScene({
@@ -23,15 +23,12 @@ export default function Home() {
 
   return (
     <>
-      {/* 3D Scene — fixed behind everything */}
       <ClientOnly fallback={null}>{() => <HomeScene scrollProgress={scrollProgress} />}</ClientOnly>
 
-      {/* Scroll container — drives the scroll progress */}
       <div className="scroll-container relative z-10 pointer-events-none">
-        <section className="scroll-section h-screen" />
-        <section className="scroll-section h-screen" />
-        <section className="scroll-section h-screen" />
-        <section className="scroll-section h-screen" />
+        {Array.from({ length: SECTION_COUNT }, (_, idx) => (
+          <section key={`scroll-spacer-${idx.toString()}`} className="scroll-section h-screen" />
+        ))}
       </div>
     </>
   );

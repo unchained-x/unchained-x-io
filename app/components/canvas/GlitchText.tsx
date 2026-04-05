@@ -68,12 +68,13 @@ export default function GlitchText({
     >
       {children}
       <meshStandardMaterial
-        color="#FFFFFF"
+        color={emissiveColor}
         emissive={emissiveColor}
         emissiveIntensity={emissiveIntensity}
-        metalness={0.5}
-        roughness={0.4}
+        metalness={0.6}
+        roughness={0.3}
         transparent
+        toneMapped={false}
       />
     </Text3D>
   );

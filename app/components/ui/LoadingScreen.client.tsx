@@ -54,9 +54,11 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
       ctx.font = `${fontSize}px monospace`;
       for (let i = 0; i < columns; i++) {
         // Generate hex-like chunks: "0x", "a7", "f3" etc.
-        const char = Math.random() > 0.9
-          ? "0x"
-          : chars[Math.floor(Math.random() * chars.length)] + chars[Math.floor(Math.random() * chars.length)];
+        const char =
+          Math.random() > 0.9
+            ? "0x"
+            : chars[Math.floor(Math.random() * chars.length)] +
+              chars[Math.floor(Math.random() * chars.length)];
         const x = i * columnSpacing;
         const y = drops[i] * fontSize;
 
@@ -66,7 +68,9 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
 
         // Trail character — dimmer
         if (drops[i] > 1) {
-          const trailChar = chars[Math.floor(Math.random() * chars.length)] + chars[Math.floor(Math.random() * chars.length)];
+          const trailChar =
+            chars[Math.floor(Math.random() * chars.length)] +
+            chars[Math.floor(Math.random() * chars.length)];
           ctx.fillStyle = "rgba(0, 240, 255, 0.06)";
           ctx.fillText(trailChar, x, y - fontSize);
         }
