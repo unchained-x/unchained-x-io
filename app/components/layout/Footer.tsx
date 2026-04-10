@@ -21,30 +21,44 @@ const SOCIAL_LINKS = [
 
 export default function Footer() {
   return (
-    <footer className="relative px-6 py-12 md:px-10 md:py-16 border-t border-border">
-      <div className="max-w-4xl mx-auto space-y-8">
+    <footer
+      className="relative px-6 py-16 md:px-10 md:py-24 min-h-screen overflow-hidden flex items-center"
+      style={{
+        background: "rgba(0, 0, 0, 0.75)",
+        backdropFilter: "blur(12px)",
+      }}
+    >
+      {/* Neon accent lines — matching menu overlay style */}
+      <div className="absolute left-[15%] top-0 bottom-0 w-[1px] bg-gradient-to-b from-transparent via-neon-cyan/10 to-transparent" />
+      <div className="absolute right-[15%] top-0 bottom-0 w-[1px] bg-gradient-to-b from-transparent via-neon-purple/10 to-transparent" />
+
+      {/* Top border glow */}
+      <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-neon-cyan/30 to-transparent" />
+
+      <div className="relative z-10 max-w-4xl mx-auto flex flex-col items-center text-center space-y-10">
         {/* GET IN TOUCH */}
-        <h2 className="text-2xl md:text-4xl font-bold uppercase tracking-wider text-neon-cyan neon-glow-strong">
+        <h2 data-footer-item className="text-3xl md:text-5xl font-bold uppercase tracking-wider text-neon-cyan neon-glow-strong">
           Get In Touch
         </h2>
 
         {/* Email */}
         <a
+          data-footer-item
           href="mailto:hello@unchainedx.io"
-          className="block text-lg md:text-xl text-text-muted neon-glow hover:text-neon-purple hover:neon-glow-purple transition-all duration-500"
+          className="text-lg md:text-xl text-text-muted neon-glow hover:text-neon-purple hover:neon-glow-purple transition-all duration-500"
         >
           hello@unchainedx.io
         </a>
 
         {/* Social links */}
-        <div className="flex gap-4">
+        <div data-footer-item className="flex gap-6">
           {SOCIAL_LINKS.map((link) => (
             <a
               key={link.label}
               href={link.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-text-muted hover:text-neon-cyan transition-colors duration-300"
+              className="text-text-muted hover:text-neon-cyan hover:scale-110 transition-all duration-300"
               aria-label={link.label}
             >
               {link.icon}
@@ -53,8 +67,8 @@ export default function Footer() {
         </div>
 
         {/* Copyright */}
-        <p className="text-xs text-text-muted pt-8 border-t border-border">
-          © 2025 UnchainedX Inc.
+        <p data-footer-item className="text-xs text-text-muted pt-8">
+          © 2026 UnchainedX Inc.
         </p>
       </div>
     </footer>

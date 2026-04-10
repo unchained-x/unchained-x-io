@@ -29,6 +29,7 @@ const WebGPUCanvas: FC<Props> = ({ children, className, dpr, frameloop = "always
             antialias: true,
           });
           await renderer.init();
+          renderer.localClippingEnabled = true;
           return renderer;
         } catch (e) {
           console.warn("[WebGPU] Failed to init, falling back to WebGL:", e);
