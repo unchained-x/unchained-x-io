@@ -42,12 +42,8 @@ export default function GlitchText({
     // Vertical jitter
     const jitterY = trigger2 * Math.sin(t * 80) * 0.01 * glitchIntensity;
 
-    // Subtle constant vibration
-    const vibeX = Math.sin(t * 30) * 0.003 * glitchIntensity;
-    const vibeY = Math.cos(t * 25) * 0.002 * glitchIntensity;
-
-    groupRef.current.position.x = position[0] + sliceX + sliceX2 + vibeX;
-    groupRef.current.position.y = position[1] + jitterY + vibeY;
+    groupRef.current.position.x = position[0] + sliceX + sliceX2;
+    groupRef.current.position.y = position[1] + jitterY;
     groupRef.current.position.z = position[2];
 
     // Scale flicker on glitch frames

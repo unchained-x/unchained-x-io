@@ -1,9 +1,4 @@
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import Lenis from "lenis";
 import { useEffect, useRef, useState } from "react";
-
-gsap.registerPlugin(ScrollTrigger);
 
 export interface SectionProgress {
   activeSection: number;
@@ -13,80 +8,59 @@ export interface SectionProgress {
 
 interface UseScrollSceneOptions {
   sectionCount: number;
-  /** Number of distinct "worlds" to snap to */
-  worldCount?: number;
   containerSelector?: string;
 }
 
+/**
+ * Pure browser-native scroll tracking.
+ * No Lenis, no GSAP snap — just CSS scroll-snap + scroll event listener.
+ * CSS handles the snapping, JS just reads the position.
+ */
 export function useScrollScene({
   sectionCount,
-  worldCount = 4,
   containerSelector = ".scroll-container",
 }: UseScrollSceneOptions) {
-  const lenisRef = useRef<Lenis | null>(null);
   const [progress, setProgress] = useState<SectionProgress>({
     activeSection: 0,
     totalProgress: 0,
     sectionProgress: 0,
   });
+  const rafRef = useRef<number>(0);
 
   useEffect(() => {
-    const lenis = new Lenis({
-      lerp: 0.06,
-      smoothWheel: true,
-    });
-    lenisRef.current = lenis;
+    const update = () => {
+      const container = document.querySelector(containerSelector);
+      if (!container) return;
 
-    lenis.on("scroll", ScrollTrigger.update);
-    gsap.ticker.add((time) => {
-      lenis.raf(time * 1000);
-    });
-    gsap.ticker.lagSmoothing(0);
+      const scrollTop = window.scrollY;
+      const maxScroll = container.scrollHeight - window.innerHeight;
+      const total = maxScroll > 0 ? Math.min(1, Math.max(0, scrollTop / maxScroll)) : 0;
 
-    const container = document.querySelector(containerSelector);
-    if (!container) return;
+      const sectionSize = 1 / sectionCount;
+      const active = Math.min(sectionCount - 1, Math.floor(total / sectionSize));
+      const sectionStart = active * sectionSize;
+      const sectionProg = Math.min(1, (total - sectionStart) / sectionSize);
 
-    // Overall progress tracker
-    ScrollTrigger.create({
-      trigger: container,
-      start: "top top",
-      end: "bottom bottom",
-      onUpdate: (self) => {
-        const total = self.progress;
-        const worldSize = 1 / worldCount;
-        const active = Math.min(worldCount - 1, Math.floor(total / worldSize));
-        const worldStart = active * worldSize;
-        const worldProg = Math.min(1, (total - worldStart) / worldSize);
+      setProgress({
+        activeSection: active,
+        totalProgress: total,
+        sectionProgress: sectionProg,
+      });
+    };
 
-        setProgress({
-          activeSection: active,
-          totalProgress: total,
-          sectionProgress: worldProg,
-        });
-      },
-    });
+    const onScroll = () => {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(update);
+    };
 
-    // Snap to world boundaries
-    const snapPoints = Array.from({ length: worldCount }, (_, i) => i / (worldCount - 1));
-
-    ScrollTrigger.create({
-      trigger: container,
-      start: "top top",
-      end: "bottom bottom",
-      snap: {
-        snapTo: snapPoints,
-        duration: { min: 0.5, max: 1.0 },
-        delay: 0.1,
-        ease: "power2.inOut",
-      },
-    });
+    window.addEventListener("scroll", onScroll, { passive: true });
+    update();
 
     return () => {
-      for (const st of ScrollTrigger.getAll()) st.kill();
-      lenis.destroy();
-      lenisRef.current = null;
+      window.removeEventListener("scroll", onScroll);
+      cancelAnimationFrame(rafRef.current);
     };
-  }, [worldCount, containerSelector]);
+  }, [sectionCount, containerSelector]);
 
   return progress;
 }

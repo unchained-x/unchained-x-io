@@ -97,34 +97,50 @@ export default function ValueWorld({ visibility }: ValueWorldProps) {
       {visibility > 0.05 && (
         <>
           <GlitchText
-            position={[0, 5, 0]}
-            size={0.2}
+            position={[0, 1.2, 0]}
+            size={0.28}
             depth={0.025}
             emissiveColor="#00F0FF"
             emissiveIntensity={1.3}
-            glitchIntensity={0.5}
+            glitchIntensity={0.6}
+            centered
           >
-            What We Deliver
+            Our Values
           </GlitchText>
           {visibility > 0.15 && (
             <>
               <GlitchText
-                position={[0, -4, 0]}
-                size={0.055}
-                depth={0.006}
-                emissiveIntensity={0.8}
+                position={[0, 0, 0]}
+                size={0.1}
+                depth={0.008}
+                emissiveColor="#BF00FF"
+                emissiveIntensity={0.9}
                 glitchIntensity={0.1}
+                centered
               >
-                We undertake extraordinary complexity
+                - Be a DOer
               </GlitchText>
               <GlitchText
-                position={[0, -4.6, 0]}
-                size={0.055}
-                depth={0.006}
-                emissiveIntensity={0.8}
+                position={[0, -0.45, 0]}
+                size={0.1}
+                depth={0.008}
+                emissiveColor="#BF00FF"
+                emissiveIntensity={0.9}
                 glitchIntensity={0.1}
+                centered
               >
-                fundamentally and structurally.
+                - Be transparent with passion
+              </GlitchText>
+              <GlitchText
+                position={[0, -0.9, 0]}
+                size={0.1}
+                depth={0.008}
+                emissiveColor="#BF00FF"
+                emissiveIntensity={0.9}
+                glitchIntensity={0.1}
+                centered
+              >
+                - Work on hard problems and build networks
               </GlitchText>
             </>
           )}

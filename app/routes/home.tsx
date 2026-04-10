@@ -14,7 +14,7 @@ export function meta(_args: Route.MetaArgs) {
   ];
 }
 
-const SECTION_COUNT = 5;
+const SECTION_COUNT = 4;
 
 export default function Home() {
   const scrollProgress = useScrollScene({
@@ -25,7 +25,7 @@ export default function Home() {
     <>
       <ClientOnly fallback={null}>{() => <HomeScene scrollProgress={scrollProgress} />}</ClientOnly>
 
-      <div className="scroll-container relative z-10 pointer-events-none">
+      <div className="scroll-container relative z-10">
         {Array.from({ length: SECTION_COUNT }, (_, idx) => (
           <section key={`scroll-spacer-${idx.toString()}`} className="scroll-section h-screen" />
         ))}

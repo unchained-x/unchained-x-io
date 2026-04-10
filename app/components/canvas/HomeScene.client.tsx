@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import AtmosphericSky from "~/components/canvas/AtmosphericSky";
 import Environment from "~/components/canvas/Environment";
 import SectionManager from "~/components/canvas/SectionManager";
@@ -13,27 +14,30 @@ interface HomeSceneProps {
   scrollProgress: SectionProgress;
 }
 
-// Hero: 0-0.2, Teaser: 0.2-0.45, Identity: 0.45-0.7, Value: 0.7-1.0
-const SECTION_BOUNDARIES = [0.2, 0.45, 0.7];
+const SECTION_BOUNDARIES = [0.25, 0.5, 0.75];
 
 export default function HomeScene({ scrollProgress }: HomeSceneProps) {
   const totalProgress = scrollProgress.totalProgress;
 
-  // Transition intensity — only near section boundaries
+  // Transition intensity for post-process shader
   let minDist = 1;
   for (const b of SECTION_BOUNDARIES) {
     const d = Math.abs(totalProgress - b);
     if (d < minDist) minDist = d;
   }
-
-  const transitionZone = 0.06;
+  const transitionZone = 0.08;
   const transitionIntensity = minDist < transitionZone ? (1 - minDist / transitionZone) ** 2 : 0;
 
-  // Active section
-  let activeSection = 0;
-  if (totalProgress >= SECTION_BOUNDARIES[2]) activeSection = 3;
-  else if (totalProgress >= SECTION_BOUNDARIES[1]) activeSection = 2;
-  else if (totalProgress >= SECTION_BOUNDARIES[0]) activeSection = 1;
+  // Stable section renderers
+  const sections = useMemo(
+    () => [
+      (vis: number) => <HeroWorld visibility={vis} />,
+      (vis: number) => <TeaserWorld visibility={vis} />,
+      (vis: number) => <IdentityWorld visibility={vis} />,
+      (vis: number) => <ValueWorld visibility={vis} />,
+    ],
+    [],
+  );
 
   return (
     <WebGPUCanvas className="!fixed inset-0 z-0" dpr={[1, 2]}>
@@ -43,16 +47,10 @@ export default function HomeScene({ scrollProgress }: HomeSceneProps) {
 
       <SectionManager
         progress={totalProgress}
-        sections={[
-          (vis) => <HeroWorld visibility={vis} />,
-          (vis) => <TeaserWorld visibility={vis} />,
-          (vis) => <IdentityWorld visibility={vis} />,
-          (vis) => <ValueWorld visibility={vis} />,
-        ]}
-        activeOverride={activeSection}
+        sections={sections}
+        boundaries={SECTION_BOUNDARIES}
       />
 
-      {/* Post-processing: bloom + transition shader in same pipeline */}
       <NativePostProcessing
         bloomStrength={1.2}
         bloomRadius={0.4}

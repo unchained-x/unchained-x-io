@@ -15,31 +15,58 @@ function Section({ visibility, children }: SectionProps) {
     groupRef.current.visible = visibility > 0.01;
   });
 
-  if (visibility <= 0.01) return null;
-
   return <group ref={groupRef}>{children}</group>;
 }
 
 interface SectionManagerProps {
   progress: number;
   sections: ((visibility: number, transitioning: boolean) => React.ReactNode)[];
-  /** Override which section is active (for custom boundaries) */
-  activeOverride?: number;
+  boundaries: number[];
 }
 
-export default function SectionManager({ sections, activeOverride }: SectionManagerProps) {
-  const sectionCount = sections.length;
-  const activeIndex = activeOverride !== undefined ? Math.min(sectionCount - 1, activeOverride) : 0;
+/**
+ * Crossfade section manager.
+ * Sections are always mounted (never unmounted).
+ * Visibility is controlled via group.visible.
+ */
+export default function SectionManager({ progress, sections, boundaries }: SectionManagerProps) {
+  const starts = [0, ...boundaries];
+  const ends = [...boundaries, 1];
+  const transitionWidth = 0.08;
 
   return (
     <>
       {sections.map((renderSection, i) => {
-        const isActive = i === activeIndex;
-        const visibility = isActive ? 1 : 0;
+        const sectionStart = starts[i];
+        const sectionEnd = ends[i];
+
+        let visibility = 0;
+
+        if (progress >= sectionStart && progress <= sectionEnd) {
+          const fadeInEnd = sectionStart + transitionWidth;
+          const fadeOutStart = sectionEnd - transitionWidth;
+
+          if (progress < fadeInEnd && i > 0) {
+            visibility = (progress - sectionStart) / transitionWidth;
+          } else if (progress > fadeOutStart && i < sections.length - 1) {
+            visibility = (sectionEnd - progress) / transitionWidth;
+          } else {
+            visibility = 1;
+          }
+        }
+
+        visibility = Math.max(0, Math.min(1, visibility));
+        const transitioning = visibility > 0.01 && visibility < 0.99;
+
+        if (i === 2 && Math.random() < 0.02) {
+          console.log(
+            `[Identity] vis=${visibility.toFixed(3)} progress=${progress.toFixed(3)} start=${sectionStart} end=${sectionEnd}`,
+          );
+        }
 
         return (
           <Section key={`section-${i.toString()}`} visibility={visibility}>
-            {renderSection(visibility, false)}
+            {renderSection(visibility, transitioning)}
           </Section>
         );
       })}
