@@ -21,6 +21,7 @@ import GlitchText from "~/components/canvas/GlitchText";
 
 interface ValueWorldProps {
   visibility: number;
+  active?: boolean;
 }
 
 /**
@@ -38,13 +39,13 @@ const VALUES = [
 
 const CYCLE_DURATION = 4; // seconds per value
 
-export default function ValueWorld({ visibility }: ValueWorldProps) {
+export default function ValueWorld({ visibility, active = true }: ValueWorldProps) {
   const groupRef = useRef<Group>(null);
   const crystalRef = useRef<Group>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
   useFrame(({ clock }) => {
-    if (!crystalRef.current) return;
+    if (!crystalRef.current || !active) return;
     const t = clock.getElapsedTime();
     crystalRef.current.rotation.y = t * 0.03;
 
@@ -162,8 +163,9 @@ function CrystalModel() {
     return t;
   }, [displayCanvas]);
 
-  // Update spotlight mask each frame
+  // Update spotlight mask only when hovered
   useFrame(() => {
+    if (!hoverUV.current) return;
     const ctx = displayCanvas.getContext("2d")!;
     ctx.clearRect(0, 0, 1024, 1024);
 
@@ -236,7 +238,10 @@ function CrystalModel() {
 
   const onLeave = useCallback(() => {
     hoverUV.current = null;
-  }, []);
+    const ctx = displayCanvas.getContext("2d")!;
+    ctx.clearRect(0, 0, 1024, 1024);
+    texture.needsUpdate = true;
+  }, [displayCanvas, texture]);
 
   if (!geometry) return null;
 
@@ -348,7 +353,7 @@ function CoreBackground() {
 
   return (
     <mesh>
-      <sphereGeometry args={[30, 32, 32]} />
+      <sphereGeometry args={[30, 16, 16]} />
       <meshBasicNodeMaterial colorNode={colorNode} side={1} />
     </mesh>
   );

@@ -7,6 +7,7 @@ interface DNAHelixProps {
   nodeCount?: number;
   radius?: number;
   height?: number;
+  active?: boolean;
 }
 
 export default function DNAHelix({
@@ -14,6 +15,7 @@ export default function DNAHelix({
   nodeCount = 20,
   radius = 0.6,
   height = 3,
+  active = true,
 }: DNAHelixProps) {
   const groupRef = useRef<Group>(null);
 
@@ -37,7 +39,7 @@ export default function DNAHelix({
   }, [nodeCount, radius, height]);
 
   useFrame(({ clock }) => {
-    if (!groupRef.current) return;
+    if (!groupRef.current || !active) return;
     groupRef.current.rotation.y = clock.getElapsedTime() * 0.3;
   });
 

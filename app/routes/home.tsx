@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { ClientOnly } from "remix-utils/client-only";
 import Footer from "~/components/layout/Footer";
 import HomeScene from "~/components/canvas/HomeScene.client";
-import { useScrollScene } from "~/hooks/useScrollScene";
+import { useScrollPinned } from "~/hooks/useScrollPinned";
 import type { Route } from "./+types/home";
 
 export function meta(_args: Route.MetaArgs) {
@@ -19,9 +19,8 @@ export function meta(_args: Route.MetaArgs) {
 const SECTION_COUNT = 4;
 
 export default function Home() {
-  const scrollProgress = useScrollScene({
-    sectionCount: SECTION_COUNT,
-  });
+  const containerRef = useRef<HTMLDivElement>(null);
+  const scrollState = useScrollPinned(containerRef, SECTION_COUNT);
   const footerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -33,11 +32,9 @@ export default function Home() {
         for (const entry of entries) {
           const ratio = entry.intersectionRatio;
           const el = entry.target as HTMLElement;
-          // Parallax: footer slides up faster than scroll
           el.style.transform = `translateY(${(1 - ratio) * 30}px)`;
           el.style.opacity = String(Math.min(1, ratio * 2));
 
-          // Stagger children
           const children = el.querySelectorAll("[data-footer-item]");
           children.forEach((child, i) => {
             const c = child as HTMLElement;
@@ -57,15 +54,21 @@ export default function Home() {
 
   return (
     <>
-      <ClientOnly fallback={null}>{() => <HomeScene scrollProgress={scrollProgress} />}</ClientOnly>
+      <ClientOnly fallback={null}>
+        {() => <HomeScene scrollState={scrollState} />}
+      </ClientOnly>
 
-      <div className="scroll-container relative z-10 pointer-events-none">
+      <div ref={containerRef} className="scroll-container relative z-10 pointer-events-none">
         {Array.from({ length: SECTION_COUNT }, (_, idx) => (
-          <section key={`scroll-spacer-${idx.toString()}`} className="scroll-section h-screen" />
+          <div key={`section-group-${idx.toString()}`}>
+            <section className="section-pin h-screen" />
+            {idx < SECTION_COUNT - 1 && (
+              <div className="transition-spacer h-screen" />
+            )}
+          </div>
         ))}
       </div>
 
-      {/* Footer — parallax reveal over 3D scene */}
       <div ref={footerRef} className="relative z-20 pointer-events-auto">
         <Footer />
       </div>

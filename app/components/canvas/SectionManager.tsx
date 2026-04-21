@@ -1,75 +1,69 @@
 import { useFrame } from "@react-three/fiber";
-import { useRef } from "react";
+import { type MutableRefObject, useEffect, useRef } from "react";
 import type { Group } from "three";
+import type { ScrollPinnedState } from "~/hooks/useScrollPinned";
 
 interface SectionProps {
-  visibility: number;
   children: React.ReactNode;
+  groupsRef?: MutableRefObject<(Group | null)[]>;
+  index?: number;
 }
 
-function Section({ visibility, children }: SectionProps) {
+function Section({ children, groupsRef, index }: SectionProps) {
   const groupRef = useRef<Group>(null);
 
-  useFrame(() => {
-    if (!groupRef.current) return;
-    groupRef.current.visible = visibility > 0.01;
-  });
+  useEffect(() => {
+    if (groupsRef && index != null) {
+      groupsRef.current[index] = groupRef.current;
+      return () => { groupsRef.current[index] = null; };
+    }
+  }, [groupsRef, index]);
 
   return <group ref={groupRef}>{children}</group>;
 }
 
 interface SectionManagerProps {
-  progress: number;
-  sections: ((visibility: number, transitioning: boolean) => React.ReactNode)[];
-  boundaries: number[];
+  sections: React.ReactNode[];
+  groupsRef?: MutableRefObject<(Group | null)[]>;
+  scrollState: React.RefObject<ScrollPinnedState>;
 }
 
 /**
- * Crossfade section manager.
- * Sections are always mounted (never unmounted).
- * Visibility is controlled via group.visible.
+ * Section manager with scroll-driven visibility.
+ * Visibility is set in useFrame by reading scrollState ref.
+ * All sections are always mounted. Active prop is not used —
+ * group.visible controls both rendering and animation skipping.
  */
-export default function SectionManager({ progress, sections, boundaries }: SectionManagerProps) {
-  const starts = [0, ...boundaries];
-  const ends = [...boundaries, 1];
-  const transitionWidth = 0.08;
+export default function SectionManager({ sections, groupsRef, scrollState }: SectionManagerProps) {
+  useFrame(() => {
+    const state = scrollState.current;
+    if (!state || !groupsRef) return;
+
+    const groups = groupsRef.current;
+    for (let i = 0; i < groups.length; i++) {
+      if (!groups[i]) continue;
+
+      if (state.transitionActive) {
+        // During transition: both outgoing and incoming visible
+        groups[i]!.visible = i === state.outgoingSection || i === state.incomingSection;
+      } else {
+        // Normal: only active section visible
+        groups[i]!.visible = i === state.activeSection;
+      }
+    }
+  });
 
   return (
     <>
-      {sections.map((renderSection, i) => {
-        const sectionStart = starts[i];
-        const sectionEnd = ends[i];
-
-        let visibility = 0;
-
-        if (progress >= sectionStart && progress <= sectionEnd) {
-          const fadeInEnd = sectionStart + transitionWidth;
-          const fadeOutStart = sectionEnd - transitionWidth;
-
-          if (progress < fadeInEnd && i > 0) {
-            visibility = (progress - sectionStart) / transitionWidth;
-          } else if (progress > fadeOutStart && i < sections.length - 1) {
-            visibility = (sectionEnd - progress) / transitionWidth;
-          } else {
-            visibility = 1;
-          }
-        }
-
-        visibility = Math.max(0, Math.min(1, visibility));
-        const transitioning = visibility > 0.01 && visibility < 0.99;
-
-        if (i === 2 && Math.random() < 0.02) {
-          console.log(
-            `[Identity] vis=${visibility.toFixed(3)} progress=${progress.toFixed(3)} start=${sectionStart} end=${sectionEnd}`,
-          );
-        }
-
-        return (
-          <Section key={`section-${i.toString()}`} visibility={visibility}>
-            {renderSection(visibility, transitioning)}
-          </Section>
-        );
-      })}
+      {sections.map((section, i) => (
+        <Section
+          key={`section-${i.toString()}`}
+          groupsRef={groupsRef}
+          index={i}
+        >
+          {section}
+        </Section>
+      ))}
     </>
   );
 }

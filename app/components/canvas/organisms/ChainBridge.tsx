@@ -7,6 +7,7 @@ interface ChainBridgeProps {
   from: [number, number, number];
   to: [number, number, number];
   linkCount?: number;
+  active?: boolean;
 }
 
 export default function ChainBridge(props: ChainBridgeProps) {
@@ -17,7 +18,7 @@ export default function ChainBridge(props: ChainBridgeProps) {
   );
 }
 
-function ChainBridgeInner({ from, to, linkCount = 6 }: ChainBridgeProps) {
+function ChainBridgeInner({ from, to, linkCount = 6, active = true }: ChainBridgeProps) {
   const groupRef = useRef<Group>(null);
   const textures = usePBRTextures("metal_dark", [2, 1]);
 
@@ -42,7 +43,7 @@ function ChainBridgeInner({ from, to, linkCount = 6 }: ChainBridgeProps) {
   }, [from, to, linkCount]);
 
   useFrame(({ clock }) => {
-    if (!groupRef.current) return;
+    if (!groupRef.current || !active) return;
     const t = clock.getElapsedTime();
     const children = groupRef.current.children;
     for (let i = 0; i < children.length; i++) {

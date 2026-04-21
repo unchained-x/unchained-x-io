@@ -23,6 +23,7 @@ interface LivingObjectProps {
   scale?: number;
   noiseAmplitude?: number;
   index: number;
+  active?: boolean;
 }
 
 export default function LivingObject(props: LivingObjectProps) {
@@ -33,7 +34,7 @@ export default function LivingObject(props: LivingObjectProps) {
   );
 }
 
-function LivingObjectInner({ type, position, scale = 1, index }: LivingObjectProps) {
+function LivingObjectInner({ type, position, scale = 1, index, active = true }: LivingObjectProps) {
   const meshRef = useRef<Mesh>(null);
   const config = OBJECT_CONFIG[type];
   const textures = usePBRTextures(config.pbr, config.repeat);
@@ -41,7 +42,7 @@ function LivingObjectInner({ type, position, scale = 1, index }: LivingObjectPro
   const basePos = useRef(position);
 
   useFrame(({ clock }) => {
-    if (!meshRef.current) return;
+    if (!meshRef.current || !active) return;
     const t = clock.getElapsedTime();
     const p = index * 1.7;
 

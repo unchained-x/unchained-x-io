@@ -13,6 +13,7 @@ interface GlitchTextProps {
   centered?: boolean;
   emissiveColor?: string;
   emissiveIntensity?: number;
+  active?: boolean;
 }
 
 export default function GlitchText({
@@ -24,11 +25,12 @@ export default function GlitchText({
   centered = true,
   emissiveColor = "#00F0FF",
   emissiveIntensity = 0.8,
+  active = true,
 }: GlitchTextProps) {
   const groupRef = useRef<Group>(null);
 
   useFrame(({ clock }) => {
-    if (!groupRef.current || glitchIntensity <= 0) return;
+    if (!groupRef.current || glitchIntensity <= 0 || !active) return;
     const t = clock.getElapsedTime();
 
     // Glitch: random horizontal displacement slices

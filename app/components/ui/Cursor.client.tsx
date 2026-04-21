@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useIsTouchDevice } from "~/hooks/useDevice";
+import { mouseState } from "~/lib/mouseState";
 
 interface Point {
   x: number;
@@ -21,11 +22,17 @@ export default function Cursor() {
   const raf = useRef<number>(0);
 
   const handleMove = useCallback((e: MouseEvent | TouchEvent) => {
-    if ("touches" in e) {
-      pos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    } else {
-      pos.current = { x: e.clientX, y: e.clientY };
-    }
+    const cx = "touches" in e ? e.touches[0].clientX : e.clientX;
+    const cy = "touches" in e ? e.touches[0].clientY : e.clientY;
+    pos.current = { x: cx, y: cy };
+
+    // Write to shared mouse state
+    mouseState.prevX = mouseState.x;
+    mouseState.prevY = mouseState.y;
+    mouseState.x = cx / window.innerWidth;
+    mouseState.y = cy / window.innerHeight;
+    mouseState.vx = mouseState.x - mouseState.prevX;
+    mouseState.vy = mouseState.y - mouseState.prevY;
   }, []);
 
   const handleClick = useCallback(

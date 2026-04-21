@@ -27,6 +27,7 @@ import LivingObject from "~/components/canvas/organisms/LivingObject";
 
 interface HeroWorldProps {
   visibility: number;
+  active?: boolean;
 }
 
 const OBJECTS: { type: ObjectType; pos: [number, number, number]; scale: number; noise: number }[] =
@@ -49,16 +50,11 @@ const CHAINS: [number, number][] = [
   [0, 2],
 ];
 
-export default function HeroWorld({ visibility }: HeroWorldProps) {
+export default function HeroWorld({ visibility, active = true }: HeroWorldProps) {
   const groupRef = useRef<Group>(null);
 
-  useEffect(() => {
-    console.log("[HeroWorld] MOUNTED");
-    return () => console.log("[HeroWorld] UNMOUNTED");
-  }, []);
-
   useFrame(({ clock }) => {
-    if (!groupRef.current) return;
+    if (!groupRef.current || !active) return;
     const t = clock.getElapsedTime();
     groupRef.current.rotation.y = Math.sin(t * 0.03) * 0.02;
   });
@@ -107,6 +103,7 @@ export default function HeroWorld({ visibility }: HeroWorldProps) {
         size={0.015}
         speed={0.08}
         area={[25, 15, 30]}
+        active={active}
       />
       <AtmosphericParticles
         count={80}
@@ -114,6 +111,7 @@ export default function HeroWorld({ visibility }: HeroWorldProps) {
         size={0.012}
         speed={0.06}
         area={[20, 12, 25]}
+        active={active}
       />
 
       {/* Objects */}
@@ -125,10 +123,11 @@ export default function HeroWorld({ visibility }: HeroWorldProps) {
           scale={obj.scale}
           noiseAmplitude={obj.noise}
           index={i}
+          active={active}
         />
       ))}
 
-      <DNAHelix position={[5, -2, -3]} />
+      <DNAHelix position={[5, -2, -3]} active={active} />
 
       {CHAINS.map(([fromIdx, toIdx]) => (
         <ChainBridge
@@ -136,6 +135,7 @@ export default function HeroWorld({ visibility }: HeroWorldProps) {
           from={OBJECTS[fromIdx].pos}
           to={OBJECTS[toIdx].pos}
           linkCount={4}
+          active={active}
         />
       ))}
 
@@ -247,7 +247,7 @@ function HeroFog() {
 
   return (
     <mesh>
-      <sphereGeometry args={[30, 32, 32]} />
+      <sphereGeometry args={[30, 16, 16]} />
       <meshBasicNodeMaterial colorNode={colorNode} side={1} />
     </mesh>
   );

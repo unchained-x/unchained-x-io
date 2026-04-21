@@ -13,6 +13,7 @@ interface VolumetricFogProps {
   opacity?: number;
   /** Animation speed */
   speed?: number;
+  active?: boolean;
 }
 
 /**
@@ -26,11 +27,12 @@ export default function VolumetricFog({
   color = "#0a0520",
   opacity = 0.15,
   speed = 0.3,
+  active = true,
 }: VolumetricFogProps) {
   const meshRef = useRef<Mesh>(null);
 
   useFrame(({ clock }) => {
-    if (!meshRef.current) return;
+    if (!meshRef.current || !active) return;
     const t = clock.getElapsedTime();
 
     // Slow breathing opacity

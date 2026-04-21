@@ -1,5 +1,6 @@
 import { useFrame } from "@react-three/fiber";
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
+import * as THREE from "three";
 import type { Group, Mesh } from "three";
 import {
   abs,
@@ -23,6 +24,7 @@ import MetaballBlobs from "~/components/canvas/MetaballBlobs";
 
 interface IdentityWorldProps {
   visibility: number;
+  active?: boolean;
 }
 
 interface NetworkNode {
@@ -37,7 +39,7 @@ interface NetworkNode {
  * Purple-shifted lighting. Structured yet organic.
  * Feeling: connection, intelligence, architecture.
  */
-export default function IdentityWorld({ visibility }: IdentityWorldProps) {
+export default function IdentityWorld({ visibility, active = true }: IdentityWorldProps) {
   const groupRef = useRef<Group>(null);
   const nodesRef = useRef<Group>(null);
   const linesRef = useRef<Group>(null);
@@ -76,10 +78,9 @@ export default function IdentityWorld({ visibility }: IdentityWorldProps) {
   }, [network]);
 
   useFrame(({ clock }) => {
-    if (!groupRef.current) return;
+    if (!groupRef.current || !active) return;
     const t = clock.getElapsedTime();
 
-    // Slow rotation of helix
     if (nodesRef.current) {
       nodesRef.current.rotation.y = t * 0.05;
     }
@@ -100,7 +101,7 @@ export default function IdentityWorld({ visibility }: IdentityWorldProps) {
       <MetaballBlobs />
 
       {/* Bubbles — transparent, soft, realistic */}
-      <Bubbles />
+      <Bubbles active={active} />
 
       {/* Text */}
       {visibility > 0.05 && (
@@ -155,12 +156,18 @@ export default function IdentityWorld({ visibility }: IdentityWorldProps) {
   );
 }
 
-function Bubbles() {
-  const groupRef = useRef<Group>(null);
+const BUBBLE_COUNT = 100;
+const _bubbleMatrix = new THREE.Matrix4();
+const _bubblePos = new THREE.Vector3();
+const _bubbleScale = new THREE.Vector3();
+const _bubbleQuat = new THREE.Quaternion();
+
+function Bubbles({ active = true }: { active?: boolean }) {
+  const meshRef = useRef<THREE.InstancedMesh>(null);
 
   const bubbles = useMemo(
     () =>
-      Array.from({ length: 100 }, (_, i) => ({
+      Array.from({ length: BUBBLE_COUNT }, () => ({
         x: (Math.random() - 0.5) * 12,
         y: Math.random() * 12 - 4,
         z: (Math.random() - 0.5) * 8 - 3,
@@ -171,42 +178,64 @@ function Bubbles() {
     [],
   );
 
-  useFrame(({ clock }) => {
-    if (!groupRef.current) return;
-    const t = clock.getElapsedTime();
-    const children = groupRef.current.children;
-    for (let i = 0; i < children.length; i++) {
+  const geometry = useMemo(() => new THREE.SphereGeometry(1, 12, 12), []);
+  const material = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: "#a0d8e8",
+        emissive: "#80c0d0",
+        emissiveIntensity: 0.15,
+        transparent: true,
+        opacity: 0.2,
+        metalness: 0.3,
+        roughness: 0.1,
+        envMapIntensity: 1,
+      }),
+    [],
+  );
+
+  // Set initial transforms
+  useEffect(() => {
+    const mesh = meshRef.current;
+    if (!mesh) return;
+    for (let i = 0; i < bubbles.length; i++) {
       const b = bubbles[i];
-      if (!b) continue;
-      // Rise + wobble
+      _bubbleScale.setScalar(b.size);
+      _bubbleMatrix.compose(_bubblePos.set(b.x, b.y, b.z), _bubbleQuat, _bubbleScale);
+      mesh.setMatrixAt(i, _bubbleMatrix);
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+  }, [bubbles]);
+
+  useFrame(({ clock }) => {
+    const mesh = meshRef.current;
+    if (!mesh || !active) return;
+    const t = clock.getElapsedTime();
+
+    for (let i = 0; i < bubbles.length; i++) {
+      const b = bubbles[i];
       let y = b.y + ((t * b.speedY * 60) % 14);
       if (y > 8) y -= 14;
-      children[i].position.set(
+
+      _bubblePos.set(
         b.x + Math.sin(t * 0.5 + b.wobble) * 0.3,
         y,
         b.z + Math.cos(t * 0.4 + b.wobble) * 0.2,
       );
+      _bubbleScale.setScalar(b.size);
+      _bubbleMatrix.compose(_bubblePos, _bubbleQuat, _bubbleScale);
+      mesh.setMatrixAt(i, _bubbleMatrix);
     }
+    mesh.instanceMatrix.needsUpdate = true;
   });
 
   return (
-    <group ref={groupRef}>
-      {bubbles.map((b) => (
-        <mesh key={`bub-${b.x.toFixed(3)}-${b.z.toFixed(3)}`} position={[b.x, b.y, b.z]}>
-          <sphereGeometry args={[b.size, 12, 12]} />
-          <meshStandardMaterial
-            color="#a0d8e8"
-            emissive="#80c0d0"
-            emissiveIntensity={0.15}
-            transparent
-            opacity={0.2}
-            metalness={0.3}
-            roughness={0.1}
-            envMapIntensity={1}
-          />
-        </mesh>
-      ))}
-    </group>
+    <instancedMesh
+      ref={meshRef}
+      args={[geometry, material, BUBBLE_COUNT]}
+      frustumCulled={false}
+      visible={active}
+    />
   );
 }
 
@@ -304,7 +333,7 @@ function WaterBackground() {
 
   return (
     <mesh>
-      <sphereGeometry args={[30, 32, 32]} />
+      <sphereGeometry args={[30, 16, 16]} />
       <meshBasicNodeMaterial colorNode={colorNode} side={1} />
     </mesh>
   );

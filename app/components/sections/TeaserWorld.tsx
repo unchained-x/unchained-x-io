@@ -20,6 +20,7 @@ import GlitchText from "~/components/canvas/GlitchText";
 
 interface TeaserWorldProps {
   visibility: number;
+  active?: boolean;
 }
 
 /**
@@ -29,7 +30,7 @@ interface TeaserWorldProps {
  * Unfinished blueprints — things not yet designed.
  * Neon grid floor. Data particles drifting.
  */
-export default function TeaserWorld({ visibility }: TeaserWorldProps) {
+export default function TeaserWorld({ visibility, active = true }: TeaserWorldProps) {
   const groupRef = useRef<Group>(null);
   const structuresRef = useRef<Group>(null);
 
@@ -125,7 +126,7 @@ export default function TeaserWorld({ visibility }: TeaserWorldProps) {
   );
 
   useFrame(({ clock }) => {
-    if (!groupRef.current || !structuresRef.current) return;
+    if (!groupRef.current || !structuresRef.current || !active) return;
     const t = clock.getElapsedTime();
 
     // Structures drift and rotate slowly
@@ -241,6 +242,7 @@ export default function TeaserWorld({ visibility }: TeaserWorldProps) {
         size={0.012}
         speed={0.06}
         area={[20, 12, 20]}
+        active={active}
       />
       <AtmosphericParticles
         count={60}
@@ -248,6 +250,7 @@ export default function TeaserWorld({ visibility }: TeaserWorldProps) {
         size={0.01}
         speed={0.04}
         area={[15, 10, 15]}
+        active={active}
       />
 
       {/* Text */}
@@ -356,7 +359,7 @@ function DigitalFog() {
 
   return (
     <mesh>
-      <sphereGeometry args={[30, 32, 32]} />
+      <sphereGeometry args={[30, 16, 16]} />
       <meshBasicNodeMaterial colorNode={colorNode} side={1} />
     </mesh>
   );
