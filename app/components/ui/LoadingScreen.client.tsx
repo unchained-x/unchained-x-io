@@ -5,6 +5,7 @@ import WebGPUCanvas from "~/components/canvas/WebGPUCanvas.client";
 
 interface LoadingScreenProps {
   onComplete: () => void;
+  statusLabel?: string;
 }
 
 const BURST_ORIGINS: [number, number, number][] = [
@@ -17,7 +18,7 @@ const BURST_ORIGINS: [number, number, number][] = [
 
 const LOGO_TEXT = "UnchainedX";
 
-export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
+export default function LoadingScreen({ onComplete, statusLabel = "Loading" }: LoadingScreenProps) {
   const [progress, setProgress] = useState(0);
   const [visible, setVisible] = useState(true);
   const [bursting, setBursting] = useState(false);
@@ -214,7 +215,7 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
           </div>
 
           {/* Subtitle */}
-          <p className="text-xs text-text-muted/30 mt-8 uppercase tracking-[0.3em]">Initializing</p>
+          <p className="text-xs text-text-muted/30 mt-8 uppercase tracking-[0.3em]">{statusLabel}</p>
         </>
       )}
     </div>

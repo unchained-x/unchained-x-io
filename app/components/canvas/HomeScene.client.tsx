@@ -1,3 +1,4 @@
+import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import type { Group } from "three";
 import AtmosphericSky from "~/components/canvas/AtmosphericSky";
@@ -13,9 +14,25 @@ import WebGPUCanvas from "./WebGPUCanvas.client";
 
 interface HomeSceneProps {
   scrollState: React.RefObject<ScrollPinnedState>;
+  onReady?: () => void;
 }
 
-export default function HomeScene({ scrollState }: HomeSceneProps) {
+/** Fires onReady after a few frames render (ensures scene is actually visible) */
+function ReadyNotifier({ onReady }: { onReady?: () => void }) {
+  const frameCount = useRef(0);
+  useFrame(() => {
+    if (frameCount.current < 0) return; // already fired
+    frameCount.current++;
+    // Wait 5 frames to ensure shaders are compiled and scene is visible
+    if (frameCount.current >= 5 && onReady) {
+      frameCount.current = -1;
+      onReady();
+    }
+  });
+  return null;
+}
+
+export default function HomeScene({ scrollState, onReady }: HomeSceneProps) {
   const sectionGroupsRef = useRef<(Group | null)[]>([]);
 
   const sections = useMemo(
@@ -30,6 +47,7 @@ export default function HomeScene({ scrollState }: HomeSceneProps) {
 
   return (
     <WebGPUCanvas className="!fixed inset-0 z-0" dpr={[1, 1.5]}>
+      <ReadyNotifier onReady={onReady} />
       <AtmosphericSky />
       <Environment />
       <fog attach="fog" args={["#0f0825", 15, 50]} />

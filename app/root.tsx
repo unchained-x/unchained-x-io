@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   isRouteErrorResponse,
   Links,
@@ -6,6 +6,7 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLocation,
 } from "react-router";
 import { ClientOnly } from "remix-utils/client-only";
 
@@ -51,16 +52,28 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [showLoading, setShowLoading] = useState(true); // initial load
+  const location = useLocation();
+  const prevPathRef = useRef(location.pathname);
   const toggleMenu = useCallback(() => setIsMenuOpen((prev) => !prev), []);
   const closeMenu = useCallback(() => setIsMenuOpen(false), []);
-  const handleLoadComplete = useCallback(() => setIsLoaded(true), []);
+  const handleLoadComplete = useCallback(() => setShowLoading(false), []);
+
+  // Show LoadingScreen on every route change
+  useEffect(() => {
+    if (location.pathname !== prevPathRef.current) {
+      prevPathRef.current = location.pathname;
+      setShowLoading(true);
+      // Close menu on navigation
+      setIsMenuOpen(false);
+    }
+  }, [location.pathname]);
 
   return (
     <>
       <ClientOnly fallback={null}>{() => <Cursor />}</ClientOnly>
       <ClientOnly fallback={null}>
-        {() => !isLoaded && <LoadingScreen onComplete={handleLoadComplete} />}
+        {() => showLoading && <LoadingScreen onComplete={handleLoadComplete} />}
       </ClientOnly>
       <Header isMenuOpen={isMenuOpen} onMenuToggle={toggleMenu} onMenuClose={closeMenu} />
       <ClientOnly fallback={null}>
