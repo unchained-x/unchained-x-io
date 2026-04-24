@@ -64,8 +64,14 @@ export default function App() {
     if (location.pathname !== prevPathRef.current) {
       prevPathRef.current = location.pathname;
       setShowLoading(true);
-      // Close menu on navigation
       setIsMenuOpen(false);
+      // Force scroll top immediately and after a frame (for layout shifts)
+      window.scrollTo({ top: 0, behavior: "instant" });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, behavior: "instant" });
+      });
     }
   }, [location.pathname]);
 
