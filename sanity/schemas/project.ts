@@ -51,11 +51,11 @@ export const project = defineType({
             list: [
               { title: "AI", value: "AI" },
               { title: "Blockchain", value: "Blockchain" },
-              { title: "Web", value: "Web" },
               { title: "Creative", value: "Creative" },
               { title: "Infrastructure", value: "Infrastructure" },
               { title: "Design", value: "Design" },
               { title: "Security", value: "Security" },
+              { title: "Art", value: "Art" },
             ],
           },
         },

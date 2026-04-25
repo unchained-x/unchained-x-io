@@ -31,6 +31,8 @@ import AtmosphericParticles from "~/components/canvas/AtmosphericParticles";
 import Environment from "~/components/canvas/Environment";
 import WebGPUCanvas from "~/components/canvas/WebGPUCanvas.client";
 import type { Project } from "~/lib/sanity.types";
+import GenerativeThumb from "~/components/portfolio/GenerativeThumb";
+
 
 // --- Shared noise ---
 const hashFn = Fn(([p]: [any]) =>
@@ -260,9 +262,9 @@ function WashiCardMesh({ project, cardIndex }: { project: Project; cardIndex: nu
 
       {/* Card content */}
       <Html center distanceFactor={5.2} style={{ pointerEvents: "none", width: "680px" }}>
-        <div className="flex h-[370px] gap-4 p-3">
+        <div className="flex h-[370px] gap-10 p-3">
           {/* Left: thumbnail */}
-          <div className="w-[280px] flex-shrink-0 rounded-lg overflow-hidden" style={{ backgroundColor: "rgba(0,240,255,0.03)", border: "1px solid rgba(0,240,255,0.06)" }}>
+          <div className="w-[280px] h-full flex-shrink-0 rounded-lg overflow-hidden" style={{ backgroundColor: "rgba(0,240,255,0.03)", border: "1px solid rgba(0,240,255,0.06)" }}>
             {project.thumbnail ? (
               <img
                 src={typeof project.thumbnail === "string" ? project.thumbnail : ""}
@@ -270,11 +272,7 @@ function WashiCardMesh({ project, cardIndex }: { project: Project; cardIndex: nu
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <span className="text-7xl font-bold" style={{ color: "rgba(0,240,255,0.06)", fontFamily: "Rubik, sans-serif" }}>
-                  {project.title.charAt(0)}
-                </span>
-              </div>
+              <GenerativeThumb title={project.title} categories={project.categories || []} />
             )}
           </div>
 
