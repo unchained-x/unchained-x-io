@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { ClientOnly } from "remix-utils/client-only";
 import Footer from "~/components/layout/Footer";
+import { useI18n } from "~/lib/i18n";
 import CompanyScene from "~/components/company/CompanyScene.client";
 
 import { seoMeta } from "~/lib/seo";
@@ -13,15 +14,16 @@ export function meta() {
   });
 }
 
-const COMPANY_INFO = [
-  { label: "Company", value: "UnchainedX" },
-  { label: "Founded", value: "2026" },
-  { label: "Location", value: "Saitama, Japan" },
-  { label: "Representative", value: "Keishi Shimmachi" },
-  { label: "Contact", value: "hello@unchainedx.io", href: "mailto:hello@unchainedx.io" },
+const COMPANY_INFO_KEYS = [
+  { labelKey: "company.label.company", value: "UnchainedX" },
+  { labelKey: "company.label.founded", value: "2026" },
+  { labelKey: "company.label.location", value: "Saitama, Japan" },
+  { labelKey: "company.label.representative", value: "Keishi Shimmachi" },
+  { labelKey: "company.label.contact", value: "hello@unchainedx.io", href: "mailto:hello@unchainedx.io" },
 ];
 
 export default function Company() {
+  const { t } = useI18n();
   const footerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -70,8 +72,8 @@ export default function Company() {
       {/* Company info — center */}
       <div className="fixed z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
         <div className="flex flex-col gap-6">
-          {COMPANY_INFO.map((item) => (
-            <div key={item.label} className="flex items-baseline gap-6">
+          {COMPANY_INFO_KEYS.map((item) => (
+            <div key={item.labelKey} className="flex items-baseline gap-6">
               <span
                 className="text-[10px] font-mono uppercase tracking-[0.25em] w-32 text-right flex-shrink-0"
                 style={{
@@ -79,7 +81,7 @@ export default function Company() {
                   textShadow: "0 0 4px rgba(0,240,255,0.15)",
                 }}
               >
-                {item.label}
+                {t(item.labelKey)}
               </span>
               {item.href ? (
                 <a

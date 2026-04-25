@@ -1,7 +1,6 @@
 import gsap from "gsap";
 import { useCallback, useEffect, useRef } from "react";
 import { Link } from "react-router";
-
 interface MenuOverlayProps {
   isOpen: boolean;
   onClose: () => void;

@@ -18,6 +18,7 @@ import Header from "~/components/layout/Header";
 import MenuOverlay from "~/components/layout/MenuOverlay.client";
 import Cursor from "~/components/ui/Cursor.client";
 import LoadingScreen from "~/components/ui/LoadingScreen.client";
+import { I18nProvider } from "~/lib/i18n";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -79,7 +80,7 @@ export default function App() {
   }, [location.pathname]);
 
   return (
-    <>
+    <I18nProvider>
       <ClientOnly fallback={null}>{() => <Cursor />}</ClientOnly>
       <ClientOnly fallback={null}>
         {() => showLoading && <LoadingScreen onComplete={handleLoadComplete} />}
@@ -91,7 +92,7 @@ export default function App() {
       <main>
         <Outlet />
       </main>
-    </>
+    </I18nProvider>
   );
 }
 
