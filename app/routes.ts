@@ -6,5 +6,4 @@ export default [
   route("team", "routes/team.tsx"),
   route("merch", "routes/merch.tsx"),
   route("company", "routes/company.tsx"),
-  route("legal", "routes/legal.tsx"),
 ] satisfies RouteConfig;

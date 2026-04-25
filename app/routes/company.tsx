@@ -3,11 +3,14 @@ import { ClientOnly } from "remix-utils/client-only";
 import Footer from "~/components/layout/Footer";
 import CompanyScene from "~/components/company/CompanyScene.client";
 
+import { seoMeta } from "~/lib/seo";
+
 export function meta() {
-  return [
-    { title: "Company — UnchainedX" },
-    { name: "description", content: "Company information — UnchainedX, a creative venture studio." },
-  ];
+  return seoMeta({
+    title: "Company — UnchainedX",
+    description: "Company information — UnchainedX, a creative venture studio.",
+    path: "/company",
+  });
 }
 
 const COMPANY_INFO = [

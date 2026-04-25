@@ -3,11 +3,14 @@ import { ClientOnly } from "remix-utils/client-only";
 import Footer from "~/components/layout/Footer";
 import TeamScene from "~/components/team/TeamScene.client";
 
+import { seoMeta } from "~/lib/seo";
+
 export function meta() {
-  return [
-    { title: "Team — UnchainedX" },
-    { name: "description", content: "The pack behind UnchainedX — a creative venture studio." },
-  ];
+  return seoMeta({
+    title: "Team — UnchainedX",
+    description: "The pack behind UnchainedX — a creative venture studio.",
+    path: "/team",
+  });
 }
 
 interface MemberInfo {

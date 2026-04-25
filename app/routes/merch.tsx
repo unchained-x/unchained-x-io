@@ -3,11 +3,14 @@ import { ClientOnly } from "remix-utils/client-only";
 import Footer from "~/components/layout/Footer";
 import MerchScene from "~/components/merch/MerchScene.client";
 
+import { seoMeta } from "~/lib/seo";
+
 export function meta() {
-  return [
-    { title: "Merch — UnchainedX" },
-    { name: "description", content: "UnchainedX merchandise — coming soon." },
-  ];
+  return seoMeta({
+    title: "Merch — UnchainedX",
+    description: "UnchainedX Merch — UnchainedX, a creative venture studio.",
+    path: "/merch",
+  });
 }
 
 export default function Merch() {

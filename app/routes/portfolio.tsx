@@ -5,13 +5,15 @@ import Footer from "~/components/layout/Footer";
 import PortfolioScene from "~/components/portfolio/PortfolioScene.client";
 import { sanityClient } from "~/lib/sanity";
 import type { Project, ProjectStatus } from "~/lib/sanity.types";
+import { seoMeta } from "~/lib/seo";
 import type { Route } from "./+types/portfolio";
 
 export function meta(_args: Route.MetaArgs) {
-  return [
-    { title: "Portfolio — UnchainedX" },
-    { name: "description", content: "Project portfolio of UnchainedX — a creative venture studio." },
-  ];
+  return seoMeta({
+    title: "Portfolio — UnchainedX",
+    description: "Project portfolio of UnchainedX — a creative venture studio.",
+    path: "/portfolio",
+  });
 }
 
 const PROJECTS_QUERY = `*[_type == "project"] | order(order asc) {

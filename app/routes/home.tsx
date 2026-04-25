@@ -5,15 +5,14 @@ import HomeScene from "~/components/canvas/HomeScene.client";
 import { useScrollPinned } from "~/hooks/useScrollPinned";
 import type { Route } from "./+types/home";
 
+import { seoMeta } from "~/lib/seo";
+
 export function meta(_args: Route.MetaArgs) {
-  return [
-    { title: "UnchainedX" },
-    {
-      name: "description",
-      content:
-        "UnchainedX is a creative venture studio designing and expanding value, networks, and human potential.",
-    },
-  ];
+  return seoMeta({
+    title: "UnchainedX — Creative Venture Studio",
+    description: "UnchainedX is a creative venture studio designing and expanding value, networks, and human potential.",
+    path: "/",
+  });
 }
 
 const SECTION_COUNT = 4;
