@@ -97,7 +97,7 @@ export default function Company() {
       </div>
 
       {/* Footer */}
-      <div ref={footerRef} className="relative z-40 mt-[100vh] pointer-events-auto">
+      <div ref={footerRef} className="relative z-35 mt-[100vh] pointer-events-auto">
         <Footer />
       </div>
     </>
