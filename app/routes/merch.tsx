@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { setAmbientProfile } from "~/lib/audio";
 import { ClientOnly } from "remix-utils/client-only";
 import Footer from "~/components/layout/Footer";
 import MerchScene from "~/components/merch/MerchScene.client";
@@ -15,6 +16,8 @@ export function meta() {
 
 export default function Merch() {
   const footerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => { setAmbientProfile("merch"); }, []);
 
   useEffect(() => {
     const footer = footerRef.current;

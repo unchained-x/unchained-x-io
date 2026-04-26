@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { ClientOnly } from "remix-utils/client-only";
 import Footer from "~/components/layout/Footer";
 import HomeScene from "~/components/canvas/HomeScene.client";
+import { setAmbientProfile } from "~/lib/audio";
 import { useScrollPinned } from "~/hooks/useScrollPinned";
 import type { Route } from "./+types/home";
 
@@ -21,6 +22,20 @@ export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollState = useScrollPinned(containerRef, SECTION_COUNT);
   const footerRef = useRef<HTMLDivElement>(null);
+  const prevSectionRef = useRef(-1);
+
+  // Switch ambient profile per section
+  const SECTION_PROFILES = ["hero", "teaser", "identity", "values"];
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const section = scrollState.current.activeSection;
+      if (section !== prevSectionRef.current) {
+        prevSectionRef.current = section;
+        setAmbientProfile(SECTION_PROFILES[section] || "hero");
+      }
+    }, 200);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const footer = footerRef.current;

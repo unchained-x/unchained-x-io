@@ -1,6 +1,7 @@
 import gsap from "gsap";
 import { useCallback, useEffect, useRef } from "react";
 import { Link } from "react-router";
+import { playClick, playHover } from "~/lib/audio";
 interface MenuOverlayProps {
   isOpen: boolean;
   onClose: () => void;
@@ -163,7 +164,8 @@ export default function MenuOverlay({ isOpen, onClose }: MenuOverlayProps) {
             ref={(el) => {
               if (el) itemsRef.current[i] = el;
             }}
-            onClick={onClose}
+            onClick={() => { playClick(); onClose(); }}
+            onMouseEnter={() => playHover()}
             className="group relative text-3xl md:text-7xl font-bold uppercase tracking-wider text-text-muted neon-glow hover:text-neon-cyan hover:neon-glow-strong hover:tracking-[0.08em] hover:scale-[1.02] transition-all duration-300 opacity-0"
           >
             <span className="relative z-10">{item.label}</span>

@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { isMuted, playTone, toggleMute } from "~/lib/audio";
+import { isMuted, playClick, startAmbientIfNeeded, toggleMute } from "~/lib/audio";
 
 export default function SoundToggle() {
   const [enabled, setEnabled] = useState(!isMuted());
@@ -7,9 +7,9 @@ export default function SoundToggle() {
   const toggle = useCallback(() => {
     const nowMuted = toggleMute();
     setEnabled(!nowMuted);
-    // Play a subtle click sound when enabling
     if (!nowMuted) {
-      playTone(880, 0.08, 0.15);
+      playClick();
+      startAmbientIfNeeded();
     }
   }, []);
 

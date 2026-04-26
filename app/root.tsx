@@ -18,6 +18,7 @@ import Header from "~/components/layout/Header";
 import MenuOverlay from "~/components/layout/MenuOverlay.client";
 import Cursor from "~/components/ui/Cursor.client";
 import LoadingScreen from "~/components/ui/LoadingScreen.client";
+import { playTransition } from "~/lib/audio";
 import { I18nProvider } from "~/lib/i18n";
 
 export const links: Route.LinksFunction = () => [
@@ -69,6 +70,7 @@ export default function App() {
       prevPathRef.current = location.pathname;
       setShowLoading(true);
       setIsMenuOpen(false);
+      playTransition();
       // Force scroll top immediately and after a frame (for layout shifts)
       window.scrollTo({ top: 0, behavior: "instant" });
       document.documentElement.scrollTop = 0;

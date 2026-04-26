@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useLoaderData } from "react-router";
 import { ClientOnly } from "remix-utils/client-only";
 import Footer from "~/components/layout/Footer";
+import { playClick, playHover, playSwipe, setAmbientProfile } from "~/lib/audio";
 import { sanityClient } from "~/lib/sanity";
 import TeamScene from "~/components/team/TeamScene.client";
 
@@ -63,11 +64,14 @@ export default function Team() {
   const currentIndexRef = useRef(0);
   const footerRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => { setAmbientProfile("team"); }, []);
+
   const goTo = useCallback((idx: number) => {
     const clamped = Math.max(0, Math.min(members.length - 1, idx));
+    if (clamped !== currentIndexRef.current) playSwipe();
     setCurrentIndex(clamped);
     currentIndexRef.current = clamped;
-  }, []);
+  }, [members.length]);
 
   const goPrev = useCallback(() => goTo(currentIndex - 1), [currentIndex, goTo]);
   const goNext = useCallback(() => goTo(currentIndex + 1), [currentIndex, goTo]);
@@ -345,7 +349,8 @@ export default function Team() {
       <div className="hidden md:flex fixed z-20 top-1/2 -translate-y-1/2 left-0 right-0 justify-between px-4 md:px-8 pointer-events-none">
         <button
           type="button"
-          onClick={goPrev}
+          onClick={() => { playClick(); goPrev(); }}
+          onMouseEnter={() => playHover()}
           disabled={currentIndex === 0}
           className="group pointer-events-auto w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300"
           style={{
@@ -364,7 +369,8 @@ export default function Team() {
         </button>
         <button
           type="button"
-          onClick={goNext}
+          onClick={() => { playClick(); goNext(); }}
+          onMouseEnter={() => playHover()}
           disabled={currentIndex >= members.length - 1}
           className="group pointer-events-auto w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300"
           style={{
@@ -391,7 +397,7 @@ export default function Team() {
             <button
               key={`pag-${m.name}`}
               type="button"
-              onClick={() => goTo(i)}
+              onClick={() => { playClick(); goTo(i); }}
               className="group relative flex items-center transition-all duration-500 ease-out"
               style={{ height: "32px" }}
             >

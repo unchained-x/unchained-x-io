@@ -3,6 +3,7 @@ import { useLoaderData } from "react-router";
 import { ClientOnly } from "remix-utils/client-only";
 import Footer from "~/components/layout/Footer";
 import PortfolioScene from "~/components/portfolio/PortfolioScene.client";
+import { playClick, playHover, playSwipe, setAmbientProfile } from "~/lib/audio";
 import { sanityClient } from "~/lib/sanity";
 import type { Project, ProjectStatus } from "~/lib/sanity.types";
 import { seoMeta } from "~/lib/seo";
@@ -35,6 +36,8 @@ export default function Portfolio() {
   const currentIndexRef = useRef(0);
   const footerRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => { setAmbientProfile("portfolio"); }, []);
+
   const filtered = projects.filter((p) => {
     const statusMatch = activeStatus === "All" || p.status === activeStatus;
     const searchMatch = searchQuery === "" ||
@@ -46,6 +49,7 @@ export default function Portfolio() {
 
   const goTo = useCallback((idx: number) => {
     const clamped = Math.max(0, Math.min(filtered.length - 1, idx));
+    if (clamped !== currentIndexRef.current) playSwipe();
     setCurrentIndex(clamped);
     currentIndexRef.current = clamped;
   }, [filtered.length]);
@@ -178,7 +182,7 @@ export default function Portfolio() {
               <button
                 key={status}
                 type="button"
-                onClick={() => setActiveStatus(status)}
+                onClick={() => { playClick(); setActiveStatus(status); }}
                 className="text-[11px] uppercase tracking-[0.2em] font-mono px-4 py-1.5 rounded-full transition-all duration-300"
                 style={{
                   backgroundColor: isActive ? "rgba(0,240,255,0.1)" : "rgba(255,255,255,0.03)",
@@ -200,7 +204,8 @@ export default function Portfolio() {
         {/* Prev */}
         <button
           type="button"
-          onClick={goPrev}
+          onClick={() => { playClick(); goPrev(); }}
+          onMouseEnter={() => playHover()}
           disabled={currentIndex === 0}
           className="group pointer-events-auto w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300"
           style={{
@@ -243,7 +248,8 @@ export default function Portfolio() {
         {/* Next */}
         <button
           type="button"
-          onClick={goNext}
+          onClick={() => { playClick(); goNext(); }}
+          onMouseEnter={() => playHover()}
           disabled={currentIndex >= filtered.length - 1}
           className="group pointer-events-auto w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300"
           style={{
@@ -292,7 +298,7 @@ export default function Portfolio() {
             <button
               key={`pag-${project._id}`}
               type="button"
-              onClick={() => goTo(i)}
+              onClick={() => { playClick(); goTo(i); }}
               className="group relative flex items-center transition-all duration-500 ease-out"
               style={{ height: "32px" }}
             >

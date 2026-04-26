@@ -1,5 +1,6 @@
 import { Link } from "react-router";
 import { ClientOnly } from "remix-utils/client-only";
+import { playClick, playHover } from "~/lib/audio";
 import { useI18n } from "~/lib/i18n";
 import MenuIcon from "./MenuIcon.client";
 import SoundToggle from "./SoundToggle.client";
@@ -15,7 +16,8 @@ function LanguageToggle() {
   return (
     <button
       type="button"
-      onClick={() => setLocale(locale === "en" ? "ja" : "en")}
+      onClick={() => { playClick(); setLocale(locale === "en" ? "ja" : "en"); }}
+      onMouseEnter={() => playHover()}
       className="text-[10px] font-mono uppercase tracking-[0.15em] px-2 py-1 rounded transition-all duration-300"
       style={{
         color: "rgba(224,224,255,0.5)",
@@ -42,6 +44,7 @@ export default function Header({ isMenuOpen, onMenuToggle, onMenuClose }: Header
       <Link
         to="/"
         onClick={onMenuClose}
+        onMouseEnter={() => playHover()}
         className="text-lg md:text-xl font-bold tracking-tight text-text/60 neon-glow hover:text-neon-cyan hover:neon-glow-strong transition-all duration-500"
       >
         UnchainedX

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { setAmbientProfile } from "~/lib/audio";
 import { ClientOnly } from "remix-utils/client-only";
 import Footer from "~/components/layout/Footer";
 import { useI18n } from "~/lib/i18n";
@@ -25,6 +26,8 @@ const COMPANY_INFO_KEYS = [
 export default function Company() {
   const { t } = useI18n();
   const footerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => { setAmbientProfile("company"); }, []);
 
   useEffect(() => {
     const footer = footerRef.current;
