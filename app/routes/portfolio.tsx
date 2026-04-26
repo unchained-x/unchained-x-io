@@ -180,7 +180,6 @@ export default function Portfolio() {
         <button
           type="button"
           onClick={() => { playClick(); goPrev(); }}
-          onMouseEnter={() => playHover()}
           disabled={currentIndex === 0}
           className="group pointer-events-auto w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300"
           style={{
@@ -191,6 +190,7 @@ export default function Portfolio() {
             backdropFilter: "blur(6px)",
           }}
           onMouseEnter={(e) => {
+            playHover();
             if (currentIndex === 0) return;
             const el = e.currentTarget;
             el.style.borderColor = "#E619A0";
@@ -224,7 +224,6 @@ export default function Portfolio() {
         <button
           type="button"
           onClick={() => { playClick(); goNext(); }}
-          onMouseEnter={() => playHover()}
           disabled={currentIndex >= filtered.length - 1}
           className="group pointer-events-auto w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300"
           style={{
@@ -235,6 +234,7 @@ export default function Portfolio() {
             backdropFilter: "blur(6px)",
           }}
           onMouseEnter={(e) => {
+            playHover();
             if (currentIndex >= filtered.length - 1) return;
             const el = e.currentTarget;
             el.style.borderColor = "#E619A0";

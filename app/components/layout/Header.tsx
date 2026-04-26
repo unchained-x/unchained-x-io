@@ -17,13 +17,13 @@ function LanguageToggle() {
     <button
       type="button"
       onClick={() => { playClick(); setLocale(locale === "en" ? "ja" : "en"); }}
-      onMouseEnter={() => playHover()}
       className="text-[10px] font-mono uppercase tracking-[0.15em] px-2 py-1 rounded transition-all duration-300"
       style={{
         color: "rgba(224,224,255,0.5)",
         border: "1px solid rgba(224,224,255,0.1)",
       }}
       onMouseEnter={(e) => {
+        playHover();
         e.currentTarget.style.color = "#00F0FF";
         e.currentTarget.style.borderColor = "rgba(0,240,255,0.3)";
       }}
