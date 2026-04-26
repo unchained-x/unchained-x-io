@@ -29,28 +29,14 @@ import {
 } from "three/tsl";
 import AtmosphericParticles from "~/components/canvas/AtmosphericParticles";
 import Environment from "~/components/canvas/Environment";
+import ScenePostProcessing from "~/components/canvas/ScenePostProcessing";
 import WebGPUCanvas from "~/components/canvas/WebGPUCanvas.client";
 import type { Project } from "~/lib/sanity.types";
 import GenerativeThumb from "~/components/portfolio/GenerativeThumb";
 
 
-// --- Shared noise ---
-const hashFn = Fn(([p]: [any]) =>
-  fract(sin(dot(p, vec2(127.1, 311.7))).mul(43758.5453)),
-);
-const noiseFn = Fn(([p]: [any]) => {
-  const i = vec2(p.x.floor(), p.y.floor());
-  const f = vec2(fract(p.x), fract(p.y));
-  const u = f.mul(f).mul(float(3).sub(f.mul(2)));
-  const a = hashFn(i);
-  const b = hashFn(i.add(vec2(1, 0)));
-  const c = hashFn(i.add(vec2(0, 1)));
-  const d = hashFn(i.add(vec2(1, 1)));
-  return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
-});
-const fbmFn = Fn(([p]: [any]) => {
-  return noiseFn(p).mul(0.5).add(noiseFn(p.mul(2.0).add(3.7)).mul(0.25)).add(noiseFn(p.mul(4.0).add(7.3)).mul(0.125));
-});
+// --- Shared noise (from common module) ---
+import { hash as hashFn, noise2d as noiseFn, fbm as fbmFn } from "~/lib/tsl/noise";
 
 // --- Nebula background ---
 function NebulaBackground() {
@@ -84,7 +70,7 @@ function NebulaBackground() {
 
   return (
     <mesh>
-      <sphereGeometry args={[30, 16, 16]} />
+      <sphereGeometry args={[30, 12, 12]} />
       <meshBasicNodeMaterial colorNode={colorNode} side={1} />
     </mesh>
   );
@@ -557,11 +543,15 @@ function CardCarousel({ projects, currentIndex, activeStatus }: { projects: Proj
 
   return (
     <group ref={groupRef}>
-      {projects.map((project, i) => (
-        <group key={project._id} position={[i * spacing, vp.isPortrait ? -1.0 : -0.3, 0]}>
-          <WashiCardMesh project={project} cardIndex={i} />
-        </group>
-      ))}
+      {projects.map((project, i) => {
+        // Only render current ± 1 cards for performance
+        if (Math.abs(i - currentIndex) > 1) return null;
+        return (
+          <group key={project._id} position={[i * spacing, vp.isPortrait ? -1.0 : -0.3, 0]}>
+            <WashiCardMesh project={project} cardIndex={i} />
+          </group>
+        );
+      })}
     </group>
   );
 }
@@ -573,38 +563,6 @@ interface PortfolioSceneProps {
   activeStatus: string;
 }
 
-// --- Render pipeline (required for TSL node materials to render) ---
-function PortfolioPostProcessing() {
-  const { gl, scene, camera } = useThree();
-  const pipelineRef = useRef<THREE.RenderPipeline | null>(null);
-
-  useEffect(() => {
-    const renderer = gl as unknown as THREE.WebGPURenderer;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.0;
-
-    const scenePass = pass(scene, camera);
-    scenePass.setMRT(mrt({ output, emissive: vec4(emissive, output.a) }));
-    const emTex = scenePass.getTexture("emissive");
-    emTex.type = THREE.UnsignedByteType;
-
-    const outputPass = scenePass.getTextureNode();
-    const emissivePass = scenePass.getTextureNode("emissive");
-    const bloomNode = bloom(emissivePass, 1.0, 0.3);
-
-    const pipeline = new THREE.RenderPipeline(renderer);
-    pipeline.outputNode = outputPass.add(bloomNode);
-    pipelineRef.current = pipeline;
-
-    return () => { pipelineRef.current = null; };
-  }, [gl, scene, camera]);
-
-  useFrame(() => {
-    pipelineRef.current?.renderAsync();
-  }, 1);
-
-  return null;
-}
 
 export default function PortfolioScene({ projects, currentIndex, activeStatus }: PortfolioSceneProps) {
   const isNarrow = typeof window !== "undefined" && window.innerWidth < 768;
@@ -621,7 +579,7 @@ export default function PortfolioScene({ projects, currentIndex, activeStatus }:
 
       <CardCarousel projects={projects} currentIndex={currentIndex} activeStatus={activeStatus} />
 
-      <PortfolioPostProcessing />
+      <ScenePostProcessing />
     </WebGPUCanvas>
   );
 }

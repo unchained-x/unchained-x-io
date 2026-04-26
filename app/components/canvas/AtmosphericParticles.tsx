@@ -36,7 +36,7 @@ export default function AtmosphericParticles({
     [count, area, speed],
   );
 
-  const geometry = useMemo(() => new THREE.SphereGeometry(size * 0.5, 6, 6), [size]);
+  const geometry = useMemo(() => new THREE.SphereGeometry(size * 0.5, 4, 4), [size]);
   const material = useMemo(
     () =>
       new THREE.MeshStandardMaterial({

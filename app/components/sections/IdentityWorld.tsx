@@ -349,7 +349,7 @@ function WaterBackground() {
 
   return (
     <mesh>
-      <sphereGeometry args={[30, 16, 16]} />
+      <sphereGeometry args={[30, 12, 12]} />
       <meshBasicNodeMaterial colorNode={colorNode} side={1} />
     </mesh>
   );

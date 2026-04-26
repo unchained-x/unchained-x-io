@@ -79,8 +79,24 @@ export default function GenerativeThumb({ title, categories }: GenerativeThumbPr
       rafRef.current = requestAnimationFrame(draw);
     };
 
-    rafRef.current = requestAnimationFrame(draw);
-    return () => cancelAnimationFrame(rafRef.current);
+    // Only animate when visible
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          if (!rafRef.current) rafRef.current = requestAnimationFrame(draw);
+        } else {
+          cancelAnimationFrame(rafRef.current);
+          rafRef.current = 0;
+        }
+      },
+      { threshold: 0 },
+    );
+    observer.observe(canvas);
+
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+      observer.disconnect();
+    };
   }, [title, categories]);
 
   return (
