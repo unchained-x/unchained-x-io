@@ -137,6 +137,8 @@ function ForestBackground() {
 }
 
 // --- Shared: extract point cloud from GLB model ---
+const IS_MOBILE = typeof window !== "undefined" && window.innerWidth < 768;
+
 function useModelPointCloud(modelPath: string, surfaceSample = false) {
   const { scene: gltfScene } = useGLTF(modelPath);
 
@@ -146,7 +148,7 @@ function useModelPointCloud(modelPath: string, surfaceSample = false) {
 
     if (surfaceSample) {
       // Uniform surface sampling for smooth models (egg etc.)
-      const SAMPLE_COUNT = 8000;
+      const SAMPLE_COUNT = IS_MOBILE ? 3000 : 8000;
       const triangles: { a: THREE.Vector3; b: THREE.Vector3; c: THREE.Vector3; area: number }[] = [];
       let totalArea = 0;
 
@@ -426,30 +428,13 @@ function AnimalPointCloud({ modelPath, mouseRef, scaleMultiplier = 1, surfaceSam
 }
 
 // --- Member carousel (one member at a time, centered) ---
-interface MemberInfo {
+export interface MemberInfo {
   name: string;
   role: string;
-  animal: "wolf" | "egg";
+  animal: string;
+  isHiring?: boolean;
   links?: { twitter?: string; github?: string; website?: string };
 }
-
-const MEMBERS: MemberInfo[] = [
-  {
-    name: "Keishi Shimmachi",
-    role: "Founder / Engineer",
-    animal: "wolf",
-    links: {
-      twitter: "https://twitter.com/hashmimic",
-      github: "https://github.com/aiinkiestism",
-      website: "https://hashmimic.com",
-    },
-  },
-  {
-    name: "Open Position",
-    role: "Join the pack",
-    animal: "egg",
-  },
-];
 
 const ANIMAL_MODELS: Record<string, string> = {
   wolf: "/models/wolf.glb",
@@ -467,7 +452,7 @@ function MemberModel({ member, mouseRef }: { member: MemberInfo; mouseRef: React
   return <AnimalPointCloud modelPath={modelPath} mouseRef={mouseRef} scaleMultiplier={ANIMAL_SCALES[member.animal] ?? 1} surfaceSample={member.animal === "egg"} />;
 }
 
-function MemberCarousel({ currentIndex, mouseRef }: { currentIndex: number; mouseRef: React.RefObject<{ x: number; y: number }> }) {
+function MemberCarousel({ members, currentIndex, mouseRef }: { members: MemberInfo[]; currentIndex: number; mouseRef: React.RefObject<{ x: number; y: number }> }) {
   const groupRef = useRef<Group>(null);
   const spacing = 6;
 
@@ -479,7 +464,7 @@ function MemberCarousel({ currentIndex, mouseRef }: { currentIndex: number; mous
 
   return (
     <group ref={groupRef}>
-      {MEMBERS.map((member, i) => (
+      {members.map((member, i) => (
         <group key={member.name} position={[i * spacing, 0, 0]}>
           <MemberModel member={member} mouseRef={mouseRef} />
         </group>
@@ -523,10 +508,11 @@ function TeamPostProcessing() {
 
 // --- Exported scene ---
 interface TeamSceneProps {
+  members: MemberInfo[];
   currentIndex: number;
 }
 
-export default function TeamScene({ currentIndex }: TeamSceneProps) {
+export default function TeamScene({ members, currentIndex }: TeamSceneProps) {
   const mouseRef = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
@@ -538,8 +524,10 @@ export default function TeamScene({ currentIndex }: TeamSceneProps) {
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+
   return (
-    <WebGPUCanvas className="!fixed inset-0 z-0" dpr={[1, 1.5]}>
+    <WebGPUCanvas className="!fixed inset-0 z-0" dpr={isMobile ? [1, 1] : [1, 1.5]}>
       <Environment />
       <fog attach="fog" args={["#040f0d", 18, 45]} />
       <ambientLight intensity={0.05} />
@@ -548,7 +536,7 @@ export default function TeamScene({ currentIndex }: TeamSceneProps) {
       <pointLight position={[0, -1, 5]} intensity={0.8} color="#BF00FF" distance={15} decay={2} />
 
       <ForestBackground />
-      <MemberCarousel currentIndex={currentIndex} mouseRef={mouseRef} />
+      <MemberCarousel members={members} currentIndex={currentIndex} mouseRef={mouseRef} />
       <TeamPostProcessing />
     </WebGPUCanvas>
   );

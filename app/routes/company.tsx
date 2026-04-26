@@ -60,7 +60,7 @@ export default function Company() {
       </ClientOnly>
 
       {/* Header */}
-      <div className="relative z-10 pt-28 pb-4 px-8 md:px-16">
+      <div className="fixed md:relative z-30 top-0 left-0 right-0 pt-28 pb-4 px-8 md:px-16">
         <h1
           className="text-4xl md:text-5xl font-bold tracking-wider mb-3 neon-glow-strong"
           style={{ fontFamily: "Rubik, sans-serif", color: "#00F0FF" }}
@@ -70,12 +70,12 @@ export default function Company() {
       </div>
 
       {/* Company info — center */}
-      <div className="fixed z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-        <div className="flex flex-col gap-6">
+      <div className="fixed z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-6 w-full max-w-lg">
+        <div className="flex flex-col gap-4 md:gap-6">
           {COMPANY_INFO_KEYS.map((item) => (
-            <div key={item.labelKey} className="flex items-baseline gap-6">
+            <div key={item.labelKey} className="flex flex-col items-center md:items-stretch md:flex-row md:items-baseline gap-1 md:gap-6">
               <span
-                className="text-[10px] font-mono uppercase tracking-[0.25em] w-32 text-right flex-shrink-0"
+                className="text-[10px] font-mono uppercase tracking-[0.25em] text-center md:text-right md:w-32 flex-shrink-0"
                 style={{
                   color: "rgba(0,240,255,0.4)",
                   textShadow: "0 0 4px rgba(0,240,255,0.15)",
@@ -86,7 +86,7 @@ export default function Company() {
               {item.href ? (
                 <a
                   href={item.href}
-                  className="text-sm font-mono tracking-wide transition-all duration-300"
+                  className="text-sm font-mono tracking-wide transition-all duration-300 text-center md:text-left"
                   style={{
                     color: "#E619A0",
                     textShadow: "0 0 8px rgba(230,25,150,0.4)",
@@ -104,7 +104,7 @@ export default function Company() {
                 </a>
               ) : (
                 <span
-                  className="text-sm font-mono tracking-wide"
+                  className="text-sm font-mono tracking-wide text-center md:text-left"
                   style={{
                     color: "#E0E0FF",
                     textShadow: "0 0 6px rgba(224,224,255,0.15)",
@@ -119,7 +119,7 @@ export default function Company() {
       </div>
 
       {/* Footer */}
-      <div ref={footerRef} className="relative z-20 mt-[100vh] pointer-events-auto">
+      <div ref={footerRef} className="relative z-40 mt-[100vh] pointer-events-auto">
         <Footer />
       </div>
     </>

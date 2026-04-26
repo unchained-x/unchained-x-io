@@ -174,8 +174,9 @@ function CompanyPostProcessing() {
 
 // --- Main scene ---
 export default function CompanyScene() {
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
   return (
-    <WebGPUCanvas className="!fixed inset-0 z-0" dpr={[1, 1.5]}>
+    <WebGPUCanvas className="!fixed inset-0 z-0" dpr={isMobile ? [1, 1] : [1, 1.5]}>
       <Environment />
       <fog attach="fog" args={["#0a0e1e", 18, 45]} />
       <ambientLight intensity={0.08} />

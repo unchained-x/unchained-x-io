@@ -34,6 +34,8 @@ export default function MetaballBlobs() {
   const { colorNode, uniforms } = useMemo(() => {
     const uTime = uniform(0.0);
     const uAspect = uniform(size.width / size.height);
+    const isPortrait = size.width < size.height;
+    const blobScale = isPortrait ? 0.55 : 1.0;
 
     const sdSphere = Fn(([p, center, r]: [any, any, any]) => {
       return length(p.sub(center)).sub(r);
@@ -52,25 +54,26 @@ export default function MetaballBlobs() {
       const sp2 = t.add(cos(t.mul(0.3).add(1.0)).mul(0.8));
       const sp3 = t.add(sin(t.mul(0.2).add(2.5)).mul(1.2));
 
+      const bs = float(blobScale);
       const e1 = vec3(
-        sin(sp1.mul(0.7)).mul(1.3).add(sin(sp1.mul(1.5)).mul(0.2)),
-        sin(sp1.mul(0.9)).mul(cos(sp1.mul(0.5))).mul(0.6).add(cos(sp1.mul(1.2)).mul(0.15)),
-        cos(sp1.mul(0.5)).mul(0.8).add(sin(sp1.mul(1.1)).mul(0.15)),
+        sin(sp1.mul(0.7)).mul(1.3).add(sin(sp1.mul(1.5)).mul(0.2)).mul(bs),
+        sin(sp1.mul(0.9)).mul(cos(sp1.mul(0.5))).mul(0.6).add(cos(sp1.mul(1.2)).mul(0.15)).mul(bs),
+        cos(sp1.mul(0.5)).mul(0.8).add(sin(sp1.mul(1.1)).mul(0.15)).mul(bs),
       );
       const e2 = vec3(
-        cos(sp2.mul(0.6)).mul(1.2).add(cos(sp2.mul(1.3)).mul(0.2)),
-        cos(sp2.mul(0.7).add(2.0)).mul(sin(sp2.mul(0.45))).mul(0.7).add(sin(sp2.mul(1.4)).mul(0.1)),
-        sin(sp2.mul(0.65)).mul(0.9).add(cos(sp2.mul(1.0)).mul(0.2)),
+        cos(sp2.mul(0.6)).mul(1.2).add(cos(sp2.mul(1.3)).mul(0.2)).mul(bs),
+        cos(sp2.mul(0.7).add(2.0)).mul(sin(sp2.mul(0.45))).mul(0.7).add(sin(sp2.mul(1.4)).mul(0.1)).mul(bs),
+        sin(sp2.mul(0.65)).mul(0.9).add(cos(sp2.mul(1.0)).mul(0.2)).mul(bs),
       );
       const e3 = vec3(
-        sin(sp3.mul(0.8)).mul(1.1).add(sin(sp3.mul(1.2)).mul(0.25)),
-        sin(sp3.mul(0.55).add(3.0)).mul(0.8).add(cos(sp3.mul(0.9)).mul(0.2)),
-        cos(sp3.mul(0.7)).mul(0.7).add(sin(sp3.mul(1.3)).mul(0.15)),
+        sin(sp3.mul(0.8)).mul(1.1).add(sin(sp3.mul(1.2)).mul(0.25)).mul(bs),
+        sin(sp3.mul(0.55).add(3.0)).mul(0.8).add(cos(sp3.mul(0.9)).mul(0.2)).mul(bs),
+        cos(sp3.mul(0.7)).mul(0.7).add(sin(sp3.mul(1.3)).mul(0.15)).mul(bs),
       );
 
-      const r1 = float(0.45).add(sin(t.mul(1.5)).mul(0.05));
-      const r2 = float(0.42).add(cos(t.mul(1.3).add(1.0)).mul(0.04));
-      const r3 = float(0.43).add(sin(t.mul(1.1).add(2.0)).mul(0.05));
+      const r1 = float(0.45 * blobScale).add(sin(t.mul(1.5)).mul(0.05 * blobScale));
+      const r2 = float(0.42 * blobScale).add(cos(t.mul(1.3).add(1.0)).mul(0.04 * blobScale));
+      const r3 = float(0.43 * blobScale).add(sin(t.mul(1.1).add(2.0)).mul(0.05 * blobScale));
 
       const b1 = mix(e1, e2, sin(t.mul(0.5)).mul(0.5).add(0.5));
       const b2 = mix(e2, e3, cos(t.mul(0.4).add(1.0)).mul(0.5).add(0.5));
@@ -81,9 +84,9 @@ export default function MetaballBlobs() {
       const d1 = sdSphere(p, e1, r1).add(distort);
       const d2 = sdSphere(p, e2, r2).add(distort);
       const d3 = sdSphere(p, e3, r3).add(distort);
-      const db1 = sdSphere(p, b1, float(0.25));
-      const db2 = sdSphere(p, b2, float(0.22));
-      const db3 = sdSphere(p, b3, float(0.2));
+      const db1 = sdSphere(p, b1, float(0.25 * blobScale));
+      const db2 = sdSphere(p, b2, float(0.22 * blobScale));
+      const db3 = sdSphere(p, b3, float(0.2 * blobScale));
 
       const k = float(0.25);
       const mainBlobs = smin(smin(d1, d2, k), d3, k);
@@ -170,7 +173,7 @@ export default function MetaballBlobs() {
 
   return (
     <mesh ref={meshRef} position={[0, 0, -3]}>
-      <planeGeometry args={[14, 9]} />
+      <planeGeometry args={[size.width / size.height > 1 ? 14 : 9, size.width / size.height > 1 ? 9 : 14]} />
       <meshBasicNodeMaterial colorNode={colorNode} transparent depthWrite={false} />
     </mesh>
   );

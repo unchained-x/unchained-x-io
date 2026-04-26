@@ -1,5 +1,5 @@
 import { useGLTF } from "@react-three/drei";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import { useCallback, useMemo, useRef, useState } from "react";
 import type { Group, Mesh } from "three";
 import * as THREE from "three";
@@ -43,6 +43,8 @@ export default function ValueWorld({ visibility, active = true }: ValueWorldProp
   const groupRef = useRef<Group>(null);
   const crystalRef = useRef<Group>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const { size: viewport } = useThree();
+  const isMobile = viewport.width < 600;
 
   useFrame(({ clock }) => {
     if (!crystalRef.current || !active) return;
@@ -75,8 +77,8 @@ export default function ValueWorld({ visibility, active = true }: ValueWorldProp
       {visibility > 0.05 && (
         <>
           <GlitchText
-            position={[1.8, 0.8, 0]}
-            size={0.12}
+            position={isMobile ? [0, 1.8, 0] : [1.8, 0.8, 0]}
+            size={isMobile ? 0.28 : 0.12}
             depth={0.008}
             emissiveColor="#00F0FF"
             emissiveIntensity={1.0}

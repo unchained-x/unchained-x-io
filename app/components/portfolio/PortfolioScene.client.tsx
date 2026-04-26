@@ -97,6 +97,17 @@ const STATUS_COLORS: Record<string, string> = {
   Archived: "rgba(255,255,255,0.4)",
 };
 
+function useViewport() {
+  const { size, viewport } = useThree();
+  const w = size.width;   // CSS pixels
+  const h = size.height;
+  const aspect = w / h;
+  const isPortrait = aspect < 1;
+  const vw = viewport.width;   // 3D world units visible at z=0
+  const vh = viewport.height;
+  return { w, h, aspect, isPortrait, vw, vh };
+}
+
 function WashiCardMesh({ project, cardIndex }: { project: Project; cardIndex: number }) {
   const meshRef = useRef<Mesh>(null);
   const groupRef = useRef<Group>(null);
@@ -242,6 +253,17 @@ function WashiCardMesh({ project, cardIndex }: { project: Project; cardIndex: nu
   });
 
   const statusColor = STATUS_COLORS[project.status] || STATUS_COLORS.Archived;
+  const vp = useViewport();
+
+  // Card dimensions
+  const showThumb = !vp.isPortrait;
+  // Portrait: washi = 90% of 3D viewport width, aspect 1:1.4
+  const planeW = vp.isPortrait ? vp.vw * 0.9 : 5.5;
+  const planeH = vp.isPortrait ? planeW * 1.4 : 3.0;
+  // distanceFactor and htmlWidth stay fixed — only plane scales
+  const dFactor = 5.2;
+  const htmlWidth = vp.isPortrait ? 340 : 680;
+  const htmlHeight = vp.isPortrait ? 440 : 370;
 
   return (
     <group
@@ -250,7 +272,7 @@ function WashiCardMesh({ project, cardIndex }: { project: Project; cardIndex: nu
       onPointerLeave={() => { hoverTarget.current = 0; }}
     >
       <mesh ref={meshRef}>
-        <planeGeometry args={[5.5, 3.0, 30, 20]} />
+        <planeGeometry args={[planeW, planeH, vp.isPortrait ? 20 : 30, vp.isPortrait ? 30 : 20]} />
         <meshBasicNodeMaterial
           positionNode={positionNode}
           colorNode={colorNode}
@@ -261,20 +283,22 @@ function WashiCardMesh({ project, cardIndex }: { project: Project; cardIndex: nu
       </mesh>
 
       {/* Card content */}
-      <Html center distanceFactor={5.2} style={{ pointerEvents: "none", width: "680px" }}>
-        <div className="flex h-[370px] gap-10 p-3">
-          {/* Left: thumbnail */}
-          <div className="w-[280px] h-full flex-shrink-0 rounded-lg overflow-hidden" style={{ backgroundColor: "rgba(0,240,255,0.03)", border: "1px solid rgba(0,240,255,0.06)" }}>
-            {project.thumbnail ? (
-              <img
-                src={typeof project.thumbnail === "string" ? project.thumbnail : ""}
-                alt={project.title}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <GenerativeThumb title={project.title} categories={project.categories || []} />
-            )}
-          </div>
+      <Html center distanceFactor={dFactor} style={{ pointerEvents: "none", width: `${htmlWidth}px` }}>
+        <div className={vp.isPortrait ? `flex flex-col p-4` : "flex h-[370px] gap-10 p-3"} style={vp.isPortrait ? { height: `${htmlHeight}px` } : undefined}>
+          {/* Thumbnail — landscape only */}
+          {showThumb && (
+            <div className="w-[280px] h-full flex-shrink-0 rounded-lg overflow-hidden" style={{ backgroundColor: "rgba(0,240,255,0.03)", border: "1px solid rgba(0,240,255,0.06)" }}>
+              {project.thumbnail ? (
+                <img
+                  src={typeof project.thumbnail === "string" ? project.thumbnail : ""}
+                  alt={project.title}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <GenerativeThumb title={project.title} categories={project.categories || []} />
+              )}
+            </div>
+          )}
 
           {/* Right: text */}
           <div className="flex flex-col flex-1 min-w-0 py-2">
@@ -415,6 +439,7 @@ const EMPTY_MESSAGES: Record<string, { title: string; sub: string }> = {
 };
 
 function EmptyCard({ activeStatus = "All" }: { activeStatus?: string }) {
+  const vp = useViewport();
   const uTime = useMemo(() => uniform(0.0), []);
 
   // Same vertex displacement as WashiCardMesh
@@ -472,7 +497,7 @@ function EmptyCard({ activeStatus = "All" }: { activeStatus?: string }) {
   return (
     <group>
       <mesh>
-        <planeGeometry args={[5.5, 3.0, 30, 20]} />
+        <planeGeometry args={vp.isPortrait ? [vp.vw * 0.9, vp.vw * 0.9 * 1.5, 20, 30] : [5.5, 3.0, 30, 20]} />
         <meshBasicNodeMaterial
           positionNode={positionNode}
           colorNode={colorNode}
@@ -513,7 +538,8 @@ function EmptyCard({ activeStatus = "All" }: { activeStatus?: string }) {
 function CardCarousel({ projects, currentIndex, activeStatus }: { projects: Project[]; currentIndex: number; activeStatus: string }) {
   const groupRef = useRef<Group>(null);
   const targetX = useRef(0);
-  const spacing = 6.5;
+  const vp = useViewport();
+  const spacing = vp.isPortrait ? vp.w / 80 : 6.5;
 
   useFrame(() => {
     if (!groupRef.current) return;
@@ -523,7 +549,7 @@ function CardCarousel({ projects, currentIndex, activeStatus }: { projects: Proj
 
   if (projects.length === 0) {
     return (
-      <group position={[0, -0.3, 0]}>
+      <group position={[0, vp.isPortrait ? -1.0 : -0.3, 0]}>
         <EmptyCard activeStatus={activeStatus} />
       </group>
     );
@@ -532,7 +558,7 @@ function CardCarousel({ projects, currentIndex, activeStatus }: { projects: Proj
   return (
     <group ref={groupRef}>
       {projects.map((project, i) => (
-        <group key={project._id} position={[i * spacing, -0.3, 0]}>
+        <group key={project._id} position={[i * spacing, vp.isPortrait ? -1.0 : -0.3, 0]}>
           <WashiCardMesh project={project} cardIndex={i} />
         </group>
       ))}
@@ -581,8 +607,9 @@ function PortfolioPostProcessing() {
 }
 
 export default function PortfolioScene({ projects, currentIndex, activeStatus }: PortfolioSceneProps) {
+  const isNarrow = typeof window !== "undefined" && window.innerWidth < 768;
   return (
-    <WebGPUCanvas className="!fixed inset-0 z-0" dpr={[1, 1.5]}>
+    <WebGPUCanvas className="!fixed inset-0 z-0" dpr={isNarrow ? [1, 1] : [1, 1.5]}>
       <Environment />
       <fog attach="fog" args={["#020112", 20, 50]} />
       <ambientLight intensity={0.08} />

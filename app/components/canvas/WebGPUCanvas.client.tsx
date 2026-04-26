@@ -13,15 +13,19 @@ type Props = PropsWithChildren<{
   className?: string;
   dpr?: number | [number, number];
   frameloop?: "always" | "demand" | "never";
+  fov?: number;
 }>;
 
-const WebGPUCanvas: FC<Props> = ({ children, className, dpr, frameloop = "always" }) => {
+const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+
+const WebGPUCanvas: FC<Props> = ({ children, className, dpr, frameloop = "always", fov }) => {
+  const cameraFov = fov ?? (isMobile ? 65 : 50);
   return (
     <Canvas
       className={className}
       dpr={dpr ?? [1, 2]}
       frameloop={frameloop}
-      camera={{ position: [0, 0, 5], fov: 50 }}
+      camera={{ position: [0, 0, 5], fov: cameraFov }}
       gl={async (props) => {
         try {
           const renderer = new THREE.WebGPURenderer({

@@ -1,4 +1,4 @@
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import type { Group, Mesh } from "three";
@@ -77,6 +77,9 @@ export default function IdentityWorld({ visibility, active = true }: IdentityWor
     return result;
   }, [network]);
 
+  const { size: viewport } = useThree();
+  const isMobile = viewport.width < 600;
+
   useFrame(({ clock }) => {
     if (!groupRef.current || !active) return;
     const t = clock.getElapsedTime();
@@ -117,42 +120,55 @@ export default function IdentityWorld({ visibility, active = true }: IdentityWor
             Who We Are
           </GlitchText>
           {visibility > 0.15 && (
-            <>
-              <GlitchText
-                position={[0, 0, 0]}
-                size={0.1}
-                depth={0.008}
-                emissiveColor="#00F0FF"
-                emissiveIntensity={0.9}
-                glitchIntensity={0.1}
-              >
-                An entity that experimentally architects and expands
-              </GlitchText>
-              <GlitchText
-                position={[0, -0.45, 0]}
-                size={0.1}
-                depth={0.008}
-                emissiveColor="#00F0FF"
-                emissiveIntensity={0.9}
-                glitchIntensity={0.1}
-              >
-                the potential of value, networks, and humanity through technology and creativity.
-              </GlitchText>
-              <GlitchText
-                position={[0, -0.9, 0]}
-                size={0.1}
-                depth={0.008}
-                emissiveColor="#00F0FF"
-                emissiveIntensity={0.9}
-                glitchIntensity={0.1}
-              >
-                We undertake extraordinary complexity fundamentally and structurally.
-              </GlitchText>
-            </>
+            <IdentityDescription isMobile={isMobile} />
           )}
         </>
       )}
     </group>
+  );
+}
+
+const DESC_PROPS = {
+  size: 0.1,
+  depth: 0.008,
+  emissiveColor: "#00F0FF",
+  emissiveIntensity: 0.9,
+  glitchIntensity: 0.1,
+} as const;
+
+function IdentityDescription({ isMobile }: { isMobile: boolean }) {
+  if (isMobile) {
+    const lineH = 0.35;
+    const lines = [
+      "An entity that experimentally architects and expands",
+      "the potential of value, networks, and humanity",
+      "through technology and creativity.",
+      "We undertake extraordinary complexity",
+      "fundamentally and structurally.",
+    ];
+    return (
+      <>
+        {lines.map((line, i) => (
+          <GlitchText key={line} position={[0, -i * lineH, 0]} {...DESC_PROPS}>
+            {line}
+          </GlitchText>
+        ))}
+      </>
+    );
+  }
+
+  return (
+    <>
+      <GlitchText position={[0, 0, 0]} {...DESC_PROPS}>
+        An entity that experimentally architects and expands
+      </GlitchText>
+      <GlitchText position={[0, -0.45, 0]} {...DESC_PROPS}>
+        the potential of value, networks, and humanity through technology and creativity.
+      </GlitchText>
+      <GlitchText position={[0, -0.9, 0]} {...DESC_PROPS}>
+        We undertake extraordinary complexity fundamentally and structurally.
+      </GlitchText>
+    </>
   );
 }
 

@@ -45,8 +45,10 @@ export default function HomeScene({ scrollState, onReady }: HomeSceneProps) {
     [],
   );
 
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+
   return (
-    <WebGPUCanvas className="!fixed inset-0 z-0" dpr={[1, 1.5]}>
+    <WebGPUCanvas className="!fixed inset-0 z-0" dpr={isMobile ? [1, 1] : [1, 1.5]}>
       <ReadyNotifier onReady={onReady} />
       <AtmosphericSky />
       <Environment />

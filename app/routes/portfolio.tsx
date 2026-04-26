@@ -72,6 +72,30 @@ export default function Portfolio() {
     return () => window.removeEventListener("wheel", handleWheel);
   }, [goTo]);
 
+  // Touch swipe navigation
+  useEffect(() => {
+    let startX = 0;
+    let startY = 0;
+    const handleTouchStart = (e: TouchEvent) => {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+    };
+    const handleTouchEnd = (e: TouchEvent) => {
+      const dx = e.changedTouches[0].clientX - startX;
+      const dy = e.changedTouches[0].clientY - startY;
+      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+        if (dx < 0) goTo(currentIndexRef.current + 1);
+        else goTo(currentIndexRef.current - 1);
+      }
+    };
+    window.addEventListener("touchstart", handleTouchStart, { passive: true });
+    window.addEventListener("touchend", handleTouchEnd, { passive: true });
+    return () => {
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, [goTo]);
+
   // Keyboard navigation
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -117,7 +141,7 @@ export default function Portfolio() {
       </ClientOnly>
 
       {/* Header */}
-      <div className="relative z-10 pt-28 pb-4 px-8 md:px-16">
+      <div className="fixed md:relative z-30 top-0 left-0 right-0 pt-28 pb-4 px-8 md:px-16">
         <h1
           className="text-4xl md:text-5xl font-bold tracking-wider mb-3 neon-glow-strong"
           style={{ fontFamily: "Rubik, sans-serif", color: "#00F0FF" }}
@@ -129,7 +153,7 @@ export default function Portfolio() {
         </p>
 
         {/* Search + Filters */}
-        <div className="flex items-center gap-4 flex-wrap mb-4">
+        <div className="flex items-center gap-2 md:gap-4 flex-wrap mb-4">
           {/* Search bar */}
           <div className="relative">
             <input
@@ -137,7 +161,7 @@ export default function Portfolio() {
               placeholder="Search projects..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="text-xs font-mono px-4 py-2 rounded-full outline-none transition-all duration-300 w-48 focus:w-64"
+              className="text-xs font-mono px-4 py-2 rounded-full outline-none transition-all duration-300 w-full md:w-48 md:focus:w-64"
               style={{
                 backgroundColor: "rgba(0,240,255,0.05)",
                 color: "#E0E0FF",
@@ -171,8 +195,8 @@ export default function Portfolio() {
         </div>
       </div>
 
-      {/* Navigation arrows */}
-      <div className="fixed z-20 top-1/2 -translate-y-1/2 left-0 right-0 flex justify-between px-4 md:px-8 pointer-events-none">
+      {/* Navigation arrows — desktop only */}
+      <div className="hidden md:flex fixed z-20 top-1/2 -translate-y-1/2 left-0 right-0 justify-between px-4 md:px-8 pointer-events-none">
         {/* Prev */}
         <button
           type="button"
@@ -322,7 +346,7 @@ export default function Portfolio() {
       </div>
 
       {/* Footer */}
-      <div ref={footerRef} className="relative z-20 mt-[100vh] pointer-events-auto">
+      <div ref={footerRef} className="relative z-40 mt-[100vh] pointer-events-auto">
         <Footer />
       </div>
     </>

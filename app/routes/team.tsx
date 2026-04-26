@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useLoaderData } from "react-router";
 import { ClientOnly } from "remix-utils/client-only";
 import Footer from "~/components/layout/Footer";
+import { sanityClient } from "~/lib/sanity";
 import TeamScene from "~/components/team/TeamScene.client";
 
 import { seoMeta } from "~/lib/seo";
@@ -13,44 +15,86 @@ export function meta() {
   });
 }
 
-interface MemberInfo {
+interface SanityMember {
   name: string;
-  role: string;
-  animal: "wolf" | "egg";
+  roles: string[];
+  animal: string;
   links?: { twitter?: string; github?: string; website?: string };
 }
 
-const MEMBERS: MemberInfo[] = [
-  {
-    name: "Keishi Shimmachi",
-    role: "Founder / Engineer",
-    animal: "wolf",
-    links: {
-      twitter: "https://twitter.com/hashmimic",
-      github: "https://github.com/aiinkiestism",
-      website: "https://hashmimic.com",
-    },
-  },
-  {
-    name: "Open Position",
-    role: "Join the pack",
-    animal: "egg",
-  },
-];
+interface MemberInfo {
+  name: string;
+  role: string;
+  animal: string;
+  isHiring?: boolean;
+  links?: { twitter?: string; github?: string; website?: string };
+}
+
+const HIRING_MEMBER: MemberInfo = {
+  name: "Open Position",
+  role: "Join the pack",
+  animal: "egg",
+  isHiring: true,
+};
+
+const MEMBERS_QUERY = `*[_type == "teamMember"] | order(order asc) {
+  name, roles, animal, links, order
+}`;
+
+export async function loader() {
+  try {
+    const sanityMembers = await sanityClient.fetch<SanityMember[]>(MEMBERS_QUERY);
+    const members: MemberInfo[] = sanityMembers.map((m) => ({
+      name: m.name,
+      role: m.roles.join(" / "),
+      animal: m.animal,
+      links: m.links,
+    }));
+    members.push(HIRING_MEMBER);
+    return { members };
+  } catch {
+    return { members: [HIRING_MEMBER] };
+  }
+}
 
 export default function Team() {
+  const { members } = useLoaderData<typeof loader>();
   const [currentIndex, setCurrentIndex] = useState(0);
   const currentIndexRef = useRef(0);
   const footerRef = useRef<HTMLDivElement>(null);
 
   const goTo = useCallback((idx: number) => {
-    const clamped = Math.max(0, Math.min(MEMBERS.length - 1, idx));
+    const clamped = Math.max(0, Math.min(members.length - 1, idx));
     setCurrentIndex(clamped);
     currentIndexRef.current = clamped;
   }, []);
 
   const goPrev = useCallback(() => goTo(currentIndex - 1), [currentIndex, goTo]);
   const goNext = useCallback(() => goTo(currentIndex + 1), [currentIndex, goTo]);
+
+  // Touch swipe navigation
+  useEffect(() => {
+    let startX = 0;
+    let startY = 0;
+    const handleTouchStart = (e: TouchEvent) => {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+    };
+    const handleTouchEnd = (e: TouchEvent) => {
+      const dx = e.changedTouches[0].clientX - startX;
+      const dy = e.changedTouches[0].clientY - startY;
+      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+        if (dx < 0) goTo(currentIndexRef.current + 1);
+        else goTo(currentIndexRef.current - 1);
+      }
+    };
+    window.addEventListener("touchstart", handleTouchStart, { passive: true });
+    window.addEventListener("touchend", handleTouchEnd, { passive: true });
+    return () => {
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, [goTo]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -89,18 +133,18 @@ export default function Team() {
     return () => observer.disconnect();
   }, []);
 
-  const member = MEMBERS[currentIndex];
-  const isHiring = member.animal === "egg";
+  const member = members[currentIndex];
+  const isHiring = member.isHiring === true;
 
   return (
     <>
       {/* 3D Scene */}
       <ClientOnly fallback={null}>
-        {() => <TeamScene currentIndex={currentIndex} />}
+        {() => <TeamScene members={members} currentIndex={currentIndex} />}
       </ClientOnly>
 
       {/* Header */}
-      <div className="relative z-10 pt-28 pb-4 px-8 md:px-16">
+      <div className="fixed md:relative z-30 top-0 left-0 right-0 pt-28 pb-4 px-8 md:px-16">
         <h1
           className="text-4xl md:text-5xl font-bold tracking-wider mb-3 neon-glow-strong"
           style={{ fontFamily: "Rubik, sans-serif", color: "#00F0FF" }}
@@ -147,7 +191,7 @@ export default function Team() {
                 href={member.links.twitter}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full flex items-center justify-center"
+                className="w-10 h-10 md:w-9 md:h-9 rounded-full flex items-center justify-center"
                 style={{
                   border: "1.5px solid rgba(230,25,150,0.5)",
                   color: "#E619A0",
@@ -184,7 +228,7 @@ export default function Team() {
                 href={member.links.github}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full flex items-center justify-center"
+                className="w-10 h-10 md:w-9 md:h-9 rounded-full flex items-center justify-center"
                 style={{
                   border: "1.5px solid rgba(230,25,150,0.5)",
                   color: "#E619A0",
@@ -221,7 +265,7 @@ export default function Team() {
                 href={member.links.website}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full flex items-center justify-center"
+                className="w-10 h-10 md:w-9 md:h-9 rounded-full flex items-center justify-center"
                 style={{
                   border: "1.5px solid rgba(230,25,150,0.5)",
                   color: "#E619A0",
@@ -297,8 +341,8 @@ export default function Team() {
         )}
       </div>
 
-      {/* Navigation arrows */}
-      <div className="fixed z-20 top-1/2 -translate-y-1/2 left-0 right-0 flex justify-between px-4 md:px-8 pointer-events-none">
+      {/* Navigation arrows — desktop only */}
+      <div className="hidden md:flex fixed z-20 top-1/2 -translate-y-1/2 left-0 right-0 justify-between px-4 md:px-8 pointer-events-none">
         <button
           type="button"
           onClick={goPrev}
@@ -321,13 +365,13 @@ export default function Team() {
         <button
           type="button"
           onClick={goNext}
-          disabled={currentIndex >= MEMBERS.length - 1}
+          disabled={currentIndex >= members.length - 1}
           className="group pointer-events-auto w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300"
           style={{
-            backgroundColor: currentIndex >= MEMBERS.length - 1 ? "rgba(255,255,255,0.02)" : "rgba(0,240,255,0.06)",
-            border: `1.5px solid ${currentIndex >= MEMBERS.length - 1 ? "rgba(255,255,255,0.05)" : "rgba(0,240,255,0.25)"}`,
-            color: currentIndex >= MEMBERS.length - 1 ? "rgba(255,255,255,0.15)" : "#00F0FF",
-            boxShadow: currentIndex >= MEMBERS.length - 1 ? "none" : "0 0 12px rgba(0,240,255,0.15), 0 0 25px rgba(0,240,255,0.06), inset 0 0 8px rgba(0,240,255,0.04)",
+            backgroundColor: currentIndex >= members.length - 1 ? "rgba(255,255,255,0.02)" : "rgba(0,240,255,0.06)",
+            border: `1.5px solid ${currentIndex >= members.length - 1 ? "rgba(255,255,255,0.05)" : "rgba(0,240,255,0.25)"}`,
+            color: currentIndex >= members.length - 1 ? "rgba(255,255,255,0.15)" : "#00F0FF",
+            boxShadow: currentIndex >= members.length - 1 ? "none" : "0 0 12px rgba(0,240,255,0.15), 0 0 25px rgba(0,240,255,0.06), inset 0 0 8px rgba(0,240,255,0.04)",
             backdropFilter: "blur(6px)",
           }}
         >
@@ -341,7 +385,7 @@ export default function Team() {
 
       {/* Pagination */}
       <div className="fixed z-20 bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-1">
-        {MEMBERS.map((m, i) => {
+        {members.map((m, i) => {
           const isActive = i === currentIndex;
           return (
             <button
@@ -379,12 +423,12 @@ export default function Team() {
             textShadow: "0 0 6px rgba(0,240,255,0.2)",
           }}
         >
-          {String(currentIndex + 1).padStart(2, "0")} / {String(MEMBERS.length).padStart(2, "0")}
+          {String(currentIndex + 1).padStart(2, "0")} / {String(members.length).padStart(2, "0")}
         </span>
       </div>
 
       {/* Footer */}
-      <div ref={footerRef} className="relative z-20 mt-[100vh] pointer-events-auto">
+      <div ref={footerRef} className="relative z-40 mt-[100vh] pointer-events-auto">
         <Footer />
       </div>
     </>

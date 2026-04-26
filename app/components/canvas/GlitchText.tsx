@@ -1,5 +1,5 @@
 import { Center, Text3D } from "@react-three/drei";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import { useRef } from "react";
 import type { Group } from "three";
 
@@ -27,6 +27,10 @@ export default function GlitchText({
   emissiveIntensity = 0.8,
   active = true,
 }: GlitchTextProps) {
+  const { size: viewport } = useThree();
+  // Large text scales down more on mobile, small text stays readable
+  const baseScale = viewport.width < 600 ? 0.65 : viewport.width < 900 ? 0.8 : 1;
+  const mobileScale = size > 0.2 ? baseScale : baseScale + (1 - baseScale) * 0.6;
   const groupRef = useRef<Group>(null);
 
   useFrame(({ clock }) => {
@@ -48,11 +52,15 @@ export default function GlitchText({
     groupRef.current.position.y = position[1] + jitterY;
     groupRef.current.position.z = position[2];
 
-    // Scale flicker on glitch frames
+    // Scale flicker on glitch frames + mobile scaling
     if (trigger) {
-      groupRef.current.scale.x = 1 + Math.random() * 0.02 * glitchIntensity;
+      groupRef.current.scale.set(
+        mobileScale * (1 + Math.random() * 0.02 * glitchIntensity),
+        mobileScale,
+        mobileScale,
+      );
     } else {
-      groupRef.current.scale.x = 1;
+      groupRef.current.scale.set(mobileScale, mobileScale, mobileScale);
     }
   });
 
