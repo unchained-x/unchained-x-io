@@ -263,7 +263,9 @@ export default function NativePostProcessing({
     const snapshotRT = snapshotRTRef.current;
     const renderer = gl as unknown as THREE.WebGPURenderer;
 
-    if (state.transitionActive && groups && snapshotRT) {
+    const isMobile = size.width < 768;
+
+    if (state.transitionActive && groups && snapshotRT && !isMobile) {
       const sectionCount = groups.length;
 
       // CAPTURE FRAME: use normalPipeline (no snapshotRT reference = no feedback loop)

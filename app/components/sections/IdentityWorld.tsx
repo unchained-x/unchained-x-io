@@ -100,10 +100,10 @@ export default function IdentityWorld({ visibility, active = true }: IdentityWor
       <pointLight position={[-5, 6, 3]} intensity={3} color="#00F0FF" distance={30} decay={2} />
       <pointLight position={[4, -3, -3]} intensity={2} color="#BF00FF" distance={25} decay={2} />
 
-      {/* Metaball blobs — real mesh with glass-like material */}
-      <MetaballBlobs />
+      {/* Metaball blobs — desktop only */}
+      {!isMobile && <MetaballBlobs />}
 
-      {/* Bubbles — transparent, soft, realistic */}
+      {/* Bubbles */}
       <Bubbles active={active} />
 
       {/* Text */}
