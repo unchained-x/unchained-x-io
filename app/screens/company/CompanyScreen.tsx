@@ -19,6 +19,7 @@ const COMPANY_INFO_KEYS: CompanyInfoItem[] = [
   { labelKey: "company.label.location", value: "Saitama, Japan" },
   { labelKey: "company.label.representative", valueKey: "company.value.representative" },
   { labelKey: "company.label.contact", value: "hello@unchainedx.io", href: "mailto:hello@unchainedx.io" },
+  { labelKey: "company.label.notices", valueKey: "company.value.notices" },
 ];
 
 export default function CompanyScreen() {

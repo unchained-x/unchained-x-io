@@ -4,6 +4,8 @@
   "company.label.location": "Location",
   "company.label.representative": "Representative",
   "company.label.contact": "Contact",
+  "company.label.notices": "Public Notices",
   "company.value.company": "UnchainedX Inc.",
-  "company.value.representative": "Keishi Shimmachi"
+  "company.value.representative": "Keishi Shimmachi",
+  "company.value.notices": "There are no public notices to disclose at this time."
 }
