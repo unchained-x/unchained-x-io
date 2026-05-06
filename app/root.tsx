@@ -13,13 +13,13 @@ import { ClientOnly } from "remix-utils/client-only";
 import type { Route } from "./+types/root";
 import "./app.css";
 
-import Footer from "~/components/layout/Footer";
-import Header from "~/components/layout/Header";
-import MenuOverlay from "~/components/layout/MenuOverlay.client";
-import Cursor from "~/components/ui/Cursor.client";
-import LoadingScreen from "~/components/ui/LoadingScreen.client";
-import { playTransition } from "~/lib/audio";
-import { I18nProvider } from "~/lib/i18n";
+import Footer from "~/components/dom/layout/Footer";
+import Header from "~/components/dom/layout/Header";
+import MenuOverlay from "~/components/dom/layout/MenuOverlay.client";
+import Cursor from "~/components/dom/overlays/Cursor.client";
+import LoadingScreen from "~/components/dom/overlays/LoadingScreen.client";
+import { playTransition } from "~/core/adapters/audio";
+import { I18nProvider } from "~/core/services/i18n";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
