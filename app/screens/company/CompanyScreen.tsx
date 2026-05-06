@@ -6,11 +6,18 @@ import { useI18n } from "~/core/services/i18n";
 import { useFooterAnimation } from "~/hooks/useFooterAnimation";
 import CompanyScene from "./scene/CompanyScene.client";
 
-const COMPANY_INFO_KEYS = [
-  { labelKey: "company.label.company", value: "UnchainedX" },
+interface CompanyInfoItem {
+  labelKey: string;
+  valueKey?: string;
+  value?: string;
+  href?: string;
+}
+
+const COMPANY_INFO_KEYS: CompanyInfoItem[] = [
+  { labelKey: "company.label.company", valueKey: "company.value.company" },
   { labelKey: "company.label.founded", value: "2026" },
   { labelKey: "company.label.location", value: "Saitama, Japan" },
-  { labelKey: "company.label.representative", value: "Keishi Shimmachi" },
+  { labelKey: "company.label.representative", valueKey: "company.value.representative" },
   { labelKey: "company.label.contact", value: "hello@unchainedx.io", href: "mailto:hello@unchainedx.io" },
 ];
 
@@ -37,49 +44,55 @@ export default function CompanyScreen() {
 
       <div className="fixed z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-6 w-full max-w-lg">
         <div className="flex flex-col gap-4 md:gap-6">
-          {COMPANY_INFO_KEYS.map((item) => (
-            <div key={item.labelKey} className="flex flex-col items-center md:items-stretch md:flex-row md:items-baseline gap-1 md:gap-6">
-              <span
-                className="text-[10px] font-mono uppercase tracking-[0.25em] text-center md:text-right md:w-32 flex-shrink-0"
-                style={{
-                  color: "rgba(0,240,255,0.4)",
-                  textShadow: "0 0 4px rgba(0,240,255,0.15)",
-                }}
+          {COMPANY_INFO_KEYS.map((item) => {
+            const displayValue = item.valueKey ? t(item.valueKey) : item.value;
+            return (
+              <div
+                key={item.labelKey}
+                className="flex flex-col items-center md:items-stretch md:flex-row md:items-baseline gap-1 md:gap-6"
               >
-                {t(item.labelKey)}
-              </span>
-              {item.href ? (
-                <a
-                  href={item.href}
-                  className="text-sm font-mono tracking-wide transition-all duration-300 text-center md:text-left"
-                  style={{
-                    color: "#E619A0",
-                    textShadow: "0 0 8px rgba(230,25,150,0.4)",
-                  }}
-                  onMouseEnter={(e) => {
-                    const el = e.currentTarget;
-                    el.style.textShadow = "0 0 12px rgba(230,25,150,0.7), 0 0 24px rgba(230,25,150,0.3)";
-                  }}
-                  onMouseLeave={(e) => {
-                    const el = e.currentTarget;
-                    el.style.textShadow = "0 0 8px rgba(230,25,150,0.4)";
-                  }}
-                >
-                  {item.value}
-                </a>
-              ) : (
                 <span
-                  className="text-sm font-mono tracking-wide text-center md:text-left"
+                  className="text-[10px] font-mono uppercase tracking-[0.25em] text-center md:text-right md:w-32 flex-shrink-0"
                   style={{
-                    color: "#E0E0FF",
-                    textShadow: "0 0 6px rgba(224,224,255,0.15)",
+                    color: "rgba(0,240,255,0.4)",
+                    textShadow: "0 0 4px rgba(0,240,255,0.15)",
                   }}
                 >
-                  {item.value}
+                  {t(item.labelKey)}
                 </span>
-              )}
-            </div>
-          ))}
+                {item.href ? (
+                  <a
+                    href={item.href}
+                    className="text-sm font-mono tracking-wide transition-all duration-300 text-center md:text-left"
+                    style={{
+                      color: "#E619A0",
+                      textShadow: "0 0 8px rgba(230,25,150,0.4)",
+                    }}
+                    onMouseEnter={(e) => {
+                      const el = e.currentTarget;
+                      el.style.textShadow = "0 0 12px rgba(230,25,150,0.7), 0 0 24px rgba(230,25,150,0.3)";
+                    }}
+                    onMouseLeave={(e) => {
+                      const el = e.currentTarget;
+                      el.style.textShadow = "0 0 8px rgba(230,25,150,0.4)";
+                    }}
+                  >
+                    {displayValue}
+                  </a>
+                ) : (
+                  <span
+                    className="text-sm font-mono tracking-wide text-center md:text-left"
+                    style={{
+                      color: "#E0E0FF",
+                      textShadow: "0 0 6px rgba(224,224,255,0.15)",
+                    }}
+                  >
+                    {displayValue}
+                  </span>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 

@@ -3,5 +3,7 @@
   "company.label.founded": "Founded",
   "company.label.location": "Location",
   "company.label.representative": "Representative",
-  "company.label.contact": "Contact"
+  "company.label.contact": "Contact",
+  "company.value.company": "UnchainedX Inc.",
+  "company.value.representative": "Keishi Shimmachi"
 }
