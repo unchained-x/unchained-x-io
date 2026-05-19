@@ -16,7 +16,7 @@ interface CompanyInfoItem {
 const COMPANY_INFO_KEYS: CompanyInfoItem[] = [
   { labelKey: "company.label.company", valueKey: "company.value.company" },
   { labelKey: "company.label.founded", value: "2026" },
-  { labelKey: "company.label.location", value: "Saitama, Japan" },
+  { labelKey: "company.label.location", valueKey: "company.value.location" },
   { labelKey: "company.label.representative", valueKey: "company.value.representative" },
   { labelKey: "company.label.contact", value: "hello@unchainedx.io", href: "mailto:hello@unchainedx.io" },
   { labelKey: "company.label.notices", valueKey: "company.value.notices" },
