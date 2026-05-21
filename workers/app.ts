@@ -16,6 +16,11 @@ const requestHandler = createRequestHandler(
 
 export default {
   async fetch(request, env, ctx) {
+    const { pathname } = new URL(request.url);
+    // Chrome DevTools workspace probe — silence the 404 noise from React Router
+    if (pathname === "/.well-known/appspecific/com.chrome.devtools.json") {
+      return new Response(null, { status: 204 });
+    }
     return requestHandler(request, {
       cloudflare: { env, ctx },
     });

@@ -44,6 +44,7 @@ export function useScrollPinned(
     // --- Lenis smooth scroll ---
     const lenis = new Lenis({ lerp: 0.08 });
     lenisRef.current = lenis;
+    const isMobile = window.matchMedia("(max-width: 768px)").matches;
 
     lenis.on("scroll", ScrollTrigger.update);
     gsap.ticker.add((time) => {
@@ -116,10 +117,45 @@ export function useScrollPinned(
       triggers.push(st);
     });
 
+    // --- Mobile: drag follows finger natively; on release snap to nearest section ---
+    const SNAP_DURATION = 0.5;
+    const sectionTriggers = triggers.slice(0, sectionEls.length);
+
+    const snapToNearestSection = () => {
+      const currentScroll = lenis.scroll;
+      const lastSection = sectionTriggers[sectionTriggers.length - 1];
+      // Past the last section's pin range → let user reach Footer freely
+      if (currentScroll > lastSection.end) return;
+
+      let nearestIdx = 0;
+      let minDist = Number.POSITIVE_INFINITY;
+      sectionTriggers.forEach((trigger, i) => {
+        const dist = Math.abs(currentScroll - trigger.start);
+        if (dist < minDist) {
+          minDist = dist;
+          nearestIdx = i;
+        }
+      });
+
+      lenis.scrollTo(sectionTriggers[nearestIdx].start, {
+        duration: SNAP_DURATION,
+        easing: (x: number) => 1 - (1 - x) ** 3,
+      });
+    };
+
+    const onTouchEnd = () => {
+      if (!isMobile) return;
+      // Defer so iOS momentum kicks in first; snap overrides it after a moment
+      setTimeout(snapToNearestSection, 80);
+    };
+
+    window.addEventListener("touchend", onTouchEnd, { passive: true });
+
     return () => {
       for (const st of triggers) st.kill();
       lenis.destroy();
       lenisRef.current = null;
+      window.removeEventListener("touchend", onTouchEnd);
     };
   }, [containerRef, sectionCount]);
 
