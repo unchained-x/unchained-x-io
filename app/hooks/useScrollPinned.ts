@@ -44,7 +44,6 @@ export function useScrollPinned(
     // --- Lenis smooth scroll ---
     const lenis = new Lenis({ lerp: 0.08 });
     lenisRef.current = lenis;
-    const isMobile = window.matchMedia("(max-width: 768px)").matches;
 
     lenis.on("scroll", ScrollTrigger.update);
     gsap.ticker.add((time) => {
@@ -117,44 +116,74 @@ export function useScrollPinned(
       triggers.push(st);
     });
 
-    // --- Mobile: drag follows finger natively; on release snap to nearest section ---
-    const SNAP_DURATION = 0.5;
+    // --- Mobile: one swipe = one section ---
+    const SWIPE_THRESHOLD_PX = 30;
+    const SWIPE_MAX_DURATION_MS = 800;
+    const SNAP_DURATION = 0.35;
+    const SNAP_GUARD_MS = 1200; // safety unlock if onComplete misses
+    let touchStartY = 0;
+    let touchStartScroll = 0;
+    let touchStartTime = 0;
+    let snapInProgress = false;
+    let snapGuardTimer: ReturnType<typeof setTimeout> | null = null;
+
     const sectionTriggers = triggers.slice(0, sectionEls.length);
+    const isMobile = () => window.matchMedia("(max-width: 768px)").matches;
 
-    const snapToNearestSection = () => {
-      const currentScroll = lenis.scroll;
-      const lastSection = sectionTriggers[sectionTriggers.length - 1];
-      // Past the last section's pin range → let user reach Footer freely
-      if (currentScroll > lastSection.end) return;
+    // Determine the section index that contains the given scroll position.
+    // Uses `start - 10` tolerance so we treat positions just before a section's pin as "in" that section.
+    const sectionAtScroll = (y: number): number => {
+      for (let i = sectionTriggers.length - 1; i >= 0; i--) {
+        if (y >= sectionTriggers[i].start - 10) return i;
+      }
+      return 0;
+    };
 
-      let nearestIdx = 0;
-      let minDist = Number.POSITIVE_INFINITY;
-      sectionTriggers.forEach((trigger, i) => {
-        const dist = Math.abs(currentScroll - trigger.start);
-        if (dist < minDist) {
-          minDist = dist;
-          nearestIdx = i;
-        }
-      });
+    const releaseLock = () => {
+      snapInProgress = false;
+      if (snapGuardTimer) {
+        clearTimeout(snapGuardTimer);
+        snapGuardTimer = null;
+      }
+    };
 
-      lenis.scrollTo(sectionTriggers[nearestIdx].start, {
+    const onTouchStart = (e: TouchEvent) => {
+      if (!isMobile()) return;
+      touchStartY = e.touches[0].clientY;
+      touchStartScroll = lenis.scroll;
+      touchStartTime = performance.now();
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      if (!isMobile() || snapInProgress) return;
+      const dy = e.changedTouches[0].clientY - touchStartY;
+      const dt = performance.now() - touchStartTime;
+      if (Math.abs(dy) < SWIPE_THRESHOLD_PX || dt > SWIPE_MAX_DURATION_MS) return;
+
+      const direction = dy < 0 ? 1 : -1; // swipe up = forward
+      const baseIdx = sectionAtScroll(touchStartScroll);
+      const target = baseIdx + direction;
+      // Out of bounds: let native scroll handle (e.g. reach Footer past last section)
+      if (target < 0 || target >= sectionTriggers.length) return;
+
+      snapInProgress = true;
+      snapGuardTimer = setTimeout(releaseLock, SNAP_GUARD_MS);
+      lenis.scrollTo(sectionTriggers[target].start, {
         duration: SNAP_DURATION,
         easing: (x: number) => 1 - (1 - x) ** 3,
+        onComplete: releaseLock,
       });
     };
 
-    const onTouchEnd = () => {
-      if (!isMobile) return;
-      // Defer so iOS momentum kicks in first; snap overrides it after a moment
-      setTimeout(snapToNearestSection, 80);
-    };
-
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
     window.addEventListener("touchend", onTouchEnd, { passive: true });
 
     return () => {
       for (const st of triggers) st.kill();
       lenis.destroy();
       lenisRef.current = null;
+      if (snapGuardTimer) clearTimeout(snapGuardTimer);
+      window.removeEventListener("touchstart", onTouchStart);
       window.removeEventListener("touchend", onTouchEnd);
     };
   }, [containerRef, sectionCount]);
