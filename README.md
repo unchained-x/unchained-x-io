@@ -45,3 +45,7 @@ app/
 - **Screen** — the top-level React component for a route (DOM + 3D bundled)
 - **Scene** — the contents of a single `<Canvas>` (R3F root)
 - **World** — a section inside the home Scene, switched by `SectionManager`
+
+## License
+
+Proprietary — all rights reserved. See [LICENSE](./LICENSE).
