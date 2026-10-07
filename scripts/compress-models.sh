@@ -21,7 +21,7 @@ for file in "$MODELS_DIR"/*.glb; do
     echo "⚡ Compressing $file (${SIZE_KB}KB > ${SIZE_THRESHOLD_KB}KB threshold)..."
 
     TEMP_FILE="${file}.tmp.glb"
-    bunx gltf-transform optimize "$file" "$TEMP_FILE" --compress draco --texture-compress webp 2>/dev/null
+    pnpm dlx gltf-transform optimize "$file" "$TEMP_FILE" --compress draco --texture-compress webp 2>/dev/null
 
     if [ $? -eq 0 ] && [ -f "$TEMP_FILE" ]; then
       NEW_SIZE_KB=$(( $(stat -f%z "$TEMP_FILE" 2>/dev/null || stat -c%s "$TEMP_FILE" 2>/dev/null) / 1024 ))
