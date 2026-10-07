@@ -88,7 +88,14 @@ export default function App() {
   return (
     <I18nProvider>
       <ClientOnly fallback={null}>{() => <Cursor />}</ClientOnly>
-      <ClientOnly fallback={null}>
+      {/* Static dark cover for the SSR/pre-hydration window before the
+          client-only LoadingScreen mounts. INLINE styles (not Tailwind classes)
+          so it stays black even before app.css is applied (in dev Vite injects
+          CSS via JS) — otherwise raw unstyled chrome flashes through. Matches
+          the LoadingScreen root (fixed inset-0 z-100 bg). */}
+      <ClientOnly
+        fallback={<div style={{ position: "fixed", inset: 0, zIndex: 100, background: "#000" }} />}
+      >
         {() => showLoading && <LoadingScreen onComplete={handleLoadComplete} />}
       </ClientOnly>
       <Header isMenuOpen={isMenuOpen} onMenuToggle={toggleMenu} onMenuClose={closeMenu} />
