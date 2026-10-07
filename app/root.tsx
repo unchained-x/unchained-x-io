@@ -21,6 +21,7 @@ import LoadingScreen from "~/components/dom/overlays/LoadingScreen.client";
 import { playTransition } from "~/core/adapters/audio";
 import { I18nProvider } from "~/core/services/i18n";
 import { NotFoundScreen } from "~/screens/notfound";
+import { sceneReady } from "~/state/sceneReady";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -70,6 +71,7 @@ export default function App() {
   useEffect(() => {
     if (location.pathname !== prevPathRef.current) {
       prevPathRef.current = location.pathname;
+      sceneReady.reset(); // re-arm the loader's readiness gate for the new scene
       setShowLoading(true);
       setIsMenuOpen(false);
       playTransition();

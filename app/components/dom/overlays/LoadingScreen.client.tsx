@@ -1,7 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ClientOnly } from "remix-utils/client-only";
-import ParticleBurst from "~/components/three/effects/ParticleBurst";
 import WebGPUCanvas from "~/components/three/canvas/WebGPUCanvas.client";
+import ParticleBurst from "~/components/three/effects/ParticleBurst";
+import { sceneReady } from "~/state/sceneReady";
+
+/** All logo characters finish revealing by this point. */
+const REVEAL_MS = 1600;
+/** The intro always plays at least this long (reveal + a beat holding the full
+ *  logo + progress to 100%) before the scene is revealed. Tune to taste. */
+const INTRO_MS = 2800;
+/** Hard cap: reveal even if the scene never signals ready (safety valve). */
+const MAX_WAIT_MS = 12000;
 
 interface LoadingScreenProps {
   onComplete: () => void;
@@ -23,9 +32,17 @@ export default function LoadingScreen({ onComplete, statusLabel = "Loading" }: L
   const [visible, setVisible] = useState(true);
   const [bursting, setBursting] = useState(false);
   const [revealedChars, setRevealedChars] = useState(0);
-  const startTime = useRef<number | null>(null);
   const bgCanvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
+  const readyRef = useRef(false);
+
+  // Track whether the 3D scene has actually rendered real frames yet.
+  useEffect(() => {
+    readyRef.current = sceneReady.isReady();
+    return sceneReady.subscribe((ready) => {
+      readyRef.current = ready;
+    });
+  }, []);
 
   // Background grid animation
   const startBgAnim = useCallback(() => {
@@ -108,39 +125,52 @@ export default function LoadingScreen({ onComplete, statusLabel = "Loading" }: L
     return () => cancelAnimationFrame(animRef.current);
   }, [startBgAnim]);
 
-  // Progress + character reveal
+  // Progress + character reveal — completion is GATED on the 3D scene actually
+  // having rendered (readyRef), not a fixed timer. This is the fix for the
+  // "black scene after loading" bug: previously the loader dismissed on a timer
+  // while the WebGPU scene might not have drawn its first frame yet.
   useEffect(() => {
-    startTime.current = performance.now();
+    let done = false;
+    // Count only VISIBLE time: a tab backgrounded mid-load can't render the
+    // scene (rAF is throttled), so neither the progress nor the dismissal clock
+    // should advance while hidden.
+    let visibleElapsed = 0;
+    let lastTick = performance.now();
 
-    const interval = setInterval(() => {
-      if (!startTime.current) return;
-      const elapsed = (performance.now() - startTime.current) / 1000;
-      const p = Math.min(1, 1 - Math.exp(-elapsed / 2));
-      setProgress(p);
-
-      // Reveal characters progressively
-      const chars = Math.floor(p * LOGO_TEXT.length * 1.5);
-      setRevealedChars(Math.min(LOGO_TEXT.length, chars));
-
-      if (p >= 0.99) {
-        setProgress(1);
-        setRevealedChars(LOGO_TEXT.length);
-        clearInterval(interval);
-        setBursting(true);
-      }
-    }, 50);
-
-    const timeout = setTimeout(() => {
+    const complete = () => {
+      if (done) return;
+      done = true;
       setProgress(1);
       setRevealedChars(LOGO_TEXT.length);
       clearInterval(interval);
       setBursting(true);
-    }, 8000);
-
-    return () => {
-      clearInterval(interval);
-      clearTimeout(timeout);
     };
+
+    const interval = setInterval(() => {
+      const now = performance.now();
+      if (!document.hidden) visibleElapsed += now - lastTick;
+      lastTick = now;
+
+      // Intro animation plays fully over INTRO_MS (eased), independent of the
+      // scene. Once elapsed passes INTRO_MS it simply holds at 100%.
+      const t = Math.min(1, visibleElapsed / INTRO_MS);
+      const p = 1 - (1 - t) * (1 - t); // easeOutQuad
+      setProgress(p);
+      // Reveal the logo earlier than the burst, so the full name is held on
+      // screen for a beat before the scene takes over.
+      const revealT = Math.min(1, visibleElapsed / REVEAL_MS);
+      setRevealedChars(Math.min(LOGO_TEXT.length, Math.ceil(revealT * LOGO_TEXT.length)));
+
+      // Never dismiss while hidden — revealing now would expose a black canvas.
+      if (document.hidden) return;
+
+      const introDone = visibleElapsed >= INTRO_MS;
+      if ((introDone && readyRef.current) || visibleElapsed >= MAX_WAIT_MS) {
+        complete();
+      }
+    }, 50);
+
+    return () => clearInterval(interval);
   }, []);
 
   const handleScattered = () => {
@@ -215,7 +245,9 @@ export default function LoadingScreen({ onComplete, statusLabel = "Loading" }: L
           </div>
 
           {/* Subtitle */}
-          <p className="text-xs text-text-muted/30 mt-8 uppercase tracking-[0.3em]">{statusLabel}</p>
+          <p className="text-xs text-text-muted/30 mt-8 uppercase tracking-[0.3em]">
+            {statusLabel}
+          </p>
         </>
       )}
     </div>

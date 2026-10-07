@@ -21,6 +21,7 @@ import {
 import * as THREE from "three/webgpu";
 import WebGPUCanvas from "~/components/three/canvas/WebGPUCanvas.client";
 import GlitchText from "~/components/three/effects/GlitchText";
+import { useSceneReady } from "~/components/three/post/useSceneReady";
 import { bloom } from "~/components/three/tsl/BloomNode.js";
 
 // 404 scene: the same top-page fog shimmer with a quiet 3D "404 · not found".
@@ -49,6 +50,7 @@ export default function NotFoundScene() {
 function Post({ strength = 1.0, radius = 0.4 }) {
   const { gl, scene, camera, size } = useThree();
   const ref = useRef<THREE.RenderPipeline | null>(null);
+  const onRendered = useSceneReady(ref);
   useEffect(() => {
     const renderer = gl as unknown as THREE.WebGPURenderer;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -66,7 +68,9 @@ function Post({ strength = 1.0, radius = 0.4 }) {
     };
   }, [gl, scene, camera, size, strength, radius]);
   useFrame(() => {
-    ref.current?.renderAsync();
+    if (!ref.current) return;
+    ref.current.renderAsync();
+    onRendered();
   }, 1);
   return null;
 }

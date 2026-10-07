@@ -1,6 +1,6 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import { type MutableRefObject, useEffect, useRef } from "react";
-import { bloom } from "~/components/three/tsl/BloomNode.js";
+import type { Group } from "three";
 import {
   abs,
   emissive,
@@ -22,10 +22,11 @@ import {
   vec3,
   vec4,
 } from "three/tsl";
-import type { Group } from "three";
 import * as THREE from "three/webgpu";
-import type { ScrollPinnedState } from "~/hooks/useScrollPinned";
+import { useSceneReady } from "~/components/three/post/useSceneReady";
+import { bloom } from "~/components/three/tsl/BloomNode.js";
 import { fbmLight } from "~/components/three/tsl/noise";
+import type { ScrollPinnedState } from "~/hooks/useScrollPinned";
 
 interface NativePostProcessingProps {
   bloomStrength?: number;
@@ -49,6 +50,7 @@ export default function NativePostProcessing({
   const timeUniform = useRef(uniform(0.0));
   const snapshotRTRef = useRef<THREE.RenderTarget | null>(null);
   const wasTransitioningRef = useRef(false);
+  const onRendered = useSceneReady(normalPipelineRef);
 
   useEffect(() => {
     const renderer = gl as unknown as THREE.WebGPURenderer;
@@ -210,17 +212,15 @@ export default function NativePostProcessing({
     // Random threshold per cell (determines when this cell flips)
     const cellHash = fract(sin(cellID.x.mul(127.1).add(cellID.y.mul(311.7))).mul(43758.5453));
     // Add slight time variation for shimmer
-    const cellHash2 = fract(sin(cellID.x.mul(43.7).add(cellID.y.mul(78.3)).add(uTime.mul(0.5))).mul(2917.1));
+    const cellHash2 = fract(
+      sin(cellID.x.mul(43.7).add(cellID.y.mul(78.3)).add(uTime.mul(0.5))).mul(2917.1),
+    );
     // Combine: base random + slight temporal variation
     const flipThreshold = cellHash.mul(0.85).add(cellHash2.mul(0.15));
 
     // Cell flips when progress exceeds its threshold
     // Use smoothstep for soft transition within each cell
-    const cellProgress = smoothstep(
-      flipThreshold.sub(0.05),
-      flipThreshold.add(0.05),
-      uProgress,
-    );
+    const cellProgress = smoothstep(flipThreshold.sub(0.05), flipThreshold.add(0.05), uProgress);
 
     // Sample outgoing
     const outScene = texture(snapshotRT.texture, uvCoord).rgb;
@@ -233,7 +233,10 @@ export default function NativePostProcessing({
 
     // Subtle cell border highlight during transition
     const cellLocal = fract(cellUV);
-    const borderDist = min(min(cellLocal.x, float(1.0).sub(cellLocal.x)), min(cellLocal.y, float(1.0).sub(cellLocal.y)));
+    const borderDist = min(
+      min(cellLocal.x, float(1.0).sub(cellLocal.x)),
+      min(cellLocal.y, float(1.0).sub(cellLocal.y)),
+    );
     const borderMask = smoothstep(float(0.02), float(0.0), borderDist);
     // Only show borders on cells that are mid-transition
     const borderActive = cellProgress.mul(float(1.0).sub(cellProgress)).mul(4.0);
@@ -269,9 +272,10 @@ export default function NativePostProcessing({
       const sectionCount = groups.length;
 
       // CAPTURE FRAME: use normalPipeline (no snapshotRT reference = no feedback loop)
-      if (!wasTransitioningRef.current
-        && state.outgoingSection >= 0
-        && state.outgoingSection < sectionCount
+      if (
+        !wasTransitioningRef.current &&
+        state.outgoingSection >= 0 &&
+        state.outgoingSection < sectionCount
       ) {
         // Show outgoing only
         for (let i = 0; i < sectionCount; i++) {
@@ -319,6 +323,9 @@ export default function NativePostProcessing({
     }
 
     wasTransitioningRef.current = state.transitionActive;
+
+    // Signal readiness from inside the render loop (never via a separate render).
+    if (normalPipelineRef.current) onRendered();
   }, 1);
 
   return null;

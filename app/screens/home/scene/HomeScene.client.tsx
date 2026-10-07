@@ -1,38 +1,21 @@
-import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import type { Group } from "three";
-import AtmosphericSky from "~/screens/home/scene/AtmosphericSky";
+import WebGPUCanvas from "~/components/three/canvas/WebGPUCanvas.client";
 import Environment from "~/components/three/environment/Environment";
-import SectionManager from "~/screens/home/scene/SectionManager";
+import type { ScrollPinnedState } from "~/hooks/useScrollPinned";
+import AtmosphericSky from "~/screens/home/scene/AtmosphericSky";
 import HeroWorld from "~/screens/home/scene/HeroWorld";
 import IdentityWorld from "~/screens/home/scene/IdentityWorld";
+import SectionManager from "~/screens/home/scene/SectionManager";
 import TeaserWorld from "~/screens/home/scene/TeaserWorld";
 import ValueWorld from "~/screens/home/scene/ValueWorld";
-import type { ScrollPinnedState } from "~/hooks/useScrollPinned";
 import NativePostProcessing from "./NativePostProcessing";
-import WebGPUCanvas from "~/components/three/canvas/WebGPUCanvas.client";
 
 interface HomeSceneProps {
   scrollState: React.RefObject<ScrollPinnedState>;
-  onReady?: () => void;
 }
 
-/** Fires onReady after a few frames render (ensures scene is actually visible) */
-function ReadyNotifier({ onReady }: { onReady?: () => void }) {
-  const frameCount = useRef(0);
-  useFrame(() => {
-    if (frameCount.current < 0) return; // already fired
-    frameCount.current++;
-    // Wait 5 frames to ensure shaders are compiled and scene is visible
-    if (frameCount.current >= 5 && onReady) {
-      frameCount.current = -1;
-      onReady();
-    }
-  });
-  return null;
-}
-
-export default function HomeScene({ scrollState, onReady }: HomeSceneProps) {
+export default function HomeScene({ scrollState }: HomeSceneProps) {
   const sectionGroupsRef = useRef<(Group | null)[]>([]);
 
   const sections = useMemo(
@@ -49,16 +32,11 @@ export default function HomeScene({ scrollState, onReady }: HomeSceneProps) {
 
   return (
     <WebGPUCanvas className="!fixed inset-0 z-0" dpr={isMobile ? [1, 1] : [1, 1.5]}>
-      <ReadyNotifier onReady={onReady} />
       <AtmosphericSky />
       <Environment />
       <fog attach="fog" args={["#0f0825", 15, 50]} />
 
-      <SectionManager
-        sections={sections}
-        groupsRef={sectionGroupsRef}
-        scrollState={scrollState}
-      />
+      <SectionManager sections={sections} groupsRef={sectionGroupsRef} scrollState={scrollState} />
 
       <NativePostProcessing
         bloomStrength={1.2}
