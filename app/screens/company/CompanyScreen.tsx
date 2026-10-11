@@ -19,6 +19,11 @@ const COMPANY_INFO_KEYS: CompanyInfoItem[] = [
   { labelKey: "company.label.location", valueKey: "company.value.location" },
   { labelKey: "company.label.representative", valueKey: "company.value.representative" },
   { labelKey: "company.label.contact", value: "hello@unchainedx.io", href: "mailto:hello@unchainedx.io" },
+  {
+    labelKey: "company.label.brandAssets",
+    value: "github.com/unchained-x/assets",
+    href: "https://github.com/unchained-x/assets",
+  },
   { labelKey: "company.label.notices", valueKey: "company.value.notices" },
 ];
 
@@ -64,6 +69,9 @@ export default function CompanyScreen() {
                 {item.href ? (
                   <a
                     href={item.href}
+                    {...(item.href.startsWith("http")
+                      ? { target: "_blank", rel: "noopener noreferrer" }
+                      : {})}
                     className="text-sm font-mono tracking-wide transition-all duration-300 text-center md:text-left"
                     style={{
                       color: "#E619A0",
